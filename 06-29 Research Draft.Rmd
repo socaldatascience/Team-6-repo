@@ -5,27 +5,4 @@ date: "6/29/2022"
 output: pdf_document
 ---
 
-```{r}
-
-
-```
-
-
-
-```{r cars}
-
-
-
-
-```
-
-
-
-
-```{r pressure}
-
-
-
-```
-
 
