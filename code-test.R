@@ -1,6 +1,6 @@
 setwd("")
 dir()
-load(d)
+load("cfCOVIDgroup6.RDATA")
 
 View(d)
 library(tidyverse)
