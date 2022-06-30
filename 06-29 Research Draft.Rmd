@@ -4,8 +4,7 @@ author: "Hester Nguyen"
 date: "6/29/2022"
 output: pdf_document
 ---
-<<<<<<< HEAD
-=======
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -14,9 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 ```{r}
-library(Microsoft365R)
-rsrch_data <- get_personal_onedrive()
-rsrch_data
+#library(Microsoft365R)
+#rsrch_data <- get_personal_onedrive()
+#rsrch_data
+
 ```
 
->>>>>>> 1ac2d7f53ec515cb9a7b9541d09adc7bffe43b23
+
