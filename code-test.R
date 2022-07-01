@@ -16,6 +16,6 @@ all_comorb <- select(choc, contains("comorb"))
 glimpse(all_comorb)
 
 library(ggplot2)
-ggplot(d, aes(x = comorb_asthma_J45, stat = "count", fill = COVIDseverity)) + 
+graph <- ggplot(d, aes(x = comorb_asthma_J45, stat = "count", fill = COVIDseverity)) + 
   geom_bar()
 
