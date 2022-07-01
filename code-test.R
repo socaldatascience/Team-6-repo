@@ -1,4 +1,4 @@
-setwd("")
+setwd("/Users/kate/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
 dir()
 load("cfCOVIDgroup6.RDATA")
 
@@ -16,6 +16,6 @@ all_comorb <- select(choc, contains("comorb"))
 glimpse(all_comorb)
 
 library(ggplot2)
-graph <- ggplot(d, aes(x = comorb_asthma_J45, stat = "count", fill = COVIDseverity)) + 
+graph <- ggplot(choc, aes(x = comorb_asthma_J45, stat = "count", fill = COVIDseverity)) + 
   geom_bar()
-
+print(graph)
