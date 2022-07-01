@@ -20,6 +20,3 @@ output: pdf_document
 #rsrch_data
 
 ```
-
-
->>>>>>> 5444118fdc15e2c3e070bf80cbdcdabd5431176c
