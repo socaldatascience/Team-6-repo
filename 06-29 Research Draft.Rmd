@@ -4,5 +4,22 @@ author: "Hester Nguyen"
 date: "6/29/2022"
 output: pdf_document
 ---
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5444118fdc15e2c3e070bf80cbdcdabd5431176c
 
 
+<<<<<<< HEAD
+=======
+## R Markdown
+
+```{r}
+#library(Microsoft365R)
+#rsrch_data <- get_personal_onedrive()
+#rsrch_data
+
+```
+
+
+>>>>>>> 5444118fdc15e2c3e070bf80cbdcdabd5431176c
