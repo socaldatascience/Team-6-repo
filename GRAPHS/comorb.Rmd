@@ -1,0 +1,106 @@
+---
+title: "Liz Comorb Stuff"
+author: "Team 6"
+date: '2022-07-01'
+output: html_document
+---
+
+```{r setup, warning = FALSE, include = FALSE}
+setwd("")
+
+load("cfCOVIDgroup6.RDATA")
+
+library(tidyverse)
+library(data.table)
+library(gganimate)
+<<<<<<< HEAD:comorb.Rmd
+#library(gifski)
+=======
+library(gifski)
+library(reshape2)
+
+>>>>>>> 204447d0c78a4aca0ea69bab5487585231fa06c5:GRAPHS/comorb.Rmd
+
+all_comorb <- select(d, contains("comorb"))
+
+glimpse(all_comorb)
+
+attach(d)
+```
+
+
+```{r warning = FALSE}
+
+all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
+  -1
+
+all_comorb <- all_comorb %>% 
+  mutate(total_comorb_by_patient = c(rowSums(all_comorb)))
+
+all_comorb %>% 
+  summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
+            var_total = var(total_comorb_by_patient))
+
+detach(d)
+
+attach(all_comorb)
+
+colSums(all_comorb)
+
+respiratory_comorb <- all_comorb %>% 
+  select(contains("J")) %>% 
+  sum()
+
+gi_comorb <- select(all_comorb, contains("K", ignore.case = FALSE)) %>% 
+  sum()
+
+nutrition_comorb <- select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition")) %>% 
+  sum()
+
+cardio_comorb <- select(all_comorb, contains("I", ignore.case = FALSE) & 
+         !contains("E", ignore.case = FALSE) & 
+         !contains("K", ignore.case =  FALSE)) %>% 
+  sum()
+
+grouped_comorb <- data.frame(respiratory_comorb, gi_comorb, nutrition_comorb, 
+                  cardio_comorb, sum(comorb_chronic_kidney_disease_N18), sum(comorb_hemoptysisR042), sum(comorb_lung_transplant_Z942), 
+                  sum(comorb_nicotine_dependence_F17)) %>% 
+  colSums() %>% 
+  melt(value.name = 'Patients') %>% 
+  mutate(comorbidity = c("Respiratory", "GI", "Nutrition", 
+                  "Cardiovascular", "Chronic Kidney Disease", "Hemoptysis", "Lung Transplant", "Nicotine Dependence"))
+
+
+
+grouped_comorb %>% 
+  ggplot(aes(x = comorbidity, y = Patients)) +
+  geom_bar(stat = 'identity')
+
+
+```
+
+
+<<<<<<< HEAD:comorb.Rmd
+
+=======
+```{r}
+#age and Covid severity
+
+ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity))) +
+  geom_bar(position = position_dodge()) +
+  theme_classic() +
+ scale_fill_manual(values=c('lightskyblue1',
+                            'sandybrown',
+                            'palegreen1',
+                            'lightpink'))
+```
+
+```{r}
+#Race and Covid severity
+
+raceandseverity <- ggplot(d, aes(x = COVIDseverity, stat = "count", fill = race)) +
+  geom_bar(position = position_dodge()) + facet_wrap(~COVIDseverity)
+print(raceandseverity)
+```
+>>>>>>> 204447d0c78a4aca0ea69bab5487585231fa06c5:GRAPHS/comorb.Rmd
+
