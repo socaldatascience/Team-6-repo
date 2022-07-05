@@ -72,7 +72,19 @@ grouped_comorb %>%
   ggplot(aes(x = comorbidity, y = Patients)) +
   geom_bar(stat = 'identity')
 
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(data = subset(all_comorb, total_comorb_by_patient > 0), fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(1:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
 
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(0:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
 ```
 
 
