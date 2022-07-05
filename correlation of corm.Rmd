@@ -1,0 +1,117 @@
+---
+title: "team 6 data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("")
+dir()
+load("cfCOVIDgroup6.RDATA")
+
+View(d)
+library(tidyverse)
+library(janitor)
+
+choc <- d
+
+glimpse(choc)
+
+all_comorb <- select(choc, contains("comorb"))
+
+glimpse(all_comorb)
+
+
+```
+
+```{r}
+choc %>% 
+  group_by(gender) %>% 
+  count()
+```
+
+```{r}
+choc %>% 
+  group_by(ethnicity) %>% 
+  count()
+```
+
+```{r}
+choc %>% 
+  group_by(race) %>% 
+  count()
+```
+
+```{r}
+apply(all_comorb,2,table)
+print("Frequencies")
+```
+
+
+```{r}
+choc %>% 
+  group_by(age_at_encounter) %>% 
+  count()
+```
+
+
+
+
+
+```{r}
+comorb <- choc %>% 
+  select(contains("comorb"))
+
+
+view(comorb)
+glimpse(comorb)
+
+```
+
+```{r}
+glimpse(all_comorb)
+```
+
+```{r}
+all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
+  -1
+```
+
+```{r}
+glimpse(all_comorb)
+```
+
+```{r}
+respiratory_comorb <- all_comorb %>% 
+  select(contains("J"))
+gi_comorb <- select(all_comorb, contains("K", ignore.case = FALSE))
+nutrition_comorb <- select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition"))
+cardio_comorb <- select(all_comorb, contains("I", ignore.case = FALSE) & 
+         !contains("E", ignore.case = FALSE) & 
+         !contains("K", ignore.case =  FALSE))
+
+
+```
+
+```{r}
+cor(all_comorb)
+```
+
+
+```{r}
+cor(cardio_comorb)
+```
+```{r}
+cor(nutrition_comorb)
+```
+
+```{r}
+gi_comorb %>%  
+  summarize(r = cor(comorb_liver_disease_K70_K77, comorb_other_GI_notLiver_K_excludesK70K77))
+```
+
+
+
