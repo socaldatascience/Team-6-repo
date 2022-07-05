@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, warning = FALSE, include = FALSE}
-setwd("/Users/kate/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
+setwd("")
 
 load("cfCOVIDgroup6.RDATA")
 
@@ -35,7 +35,7 @@ all_comorb <- all_comorb %>%
 
 all_comorb %>% 
   summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
-            var_total = (total_comorb_by_patient))
+            var_total = var(total_comorb_by_patient))
 
 detach(d)
 
