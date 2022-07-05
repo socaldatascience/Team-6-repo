@@ -15,6 +15,7 @@ library(tidyverse)
 library(data.table)
 library(gganimate)
 library(gifski)
+library(reshape2)
 
 all_comorb <- select(d, contains("comorb"))
 
