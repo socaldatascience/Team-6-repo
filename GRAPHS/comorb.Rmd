@@ -14,6 +14,7 @@ library(tidyverse)
 library(data.table)
 library(gganimate)
 library(gifski)
+library(reshape2)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -30,6 +31,10 @@ all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>%
 
 all_comorb <- all_comorb %>% 
   mutate(total_comorb_by_patient = c(rowSums(all_comorb)))
+
+all_comorb %>% 
+  summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
+            var_total = (total_comorb_by_patient))
 
 detach(d)
 
@@ -69,14 +74,4 @@ grouped_comorb %>%
 
 ```
 
-```{r}
-ggplot(joined, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_age_standardized_rate, size = population_historical_estimates, color = entity)) +
-  geom_point(alpha = 0.7, show.legend = FALSE) +
-  scale_x_log10() +
-  facet_wrap(~continent) +
-  labs(title = 'Year: {as.integer(frame_time)}', x = 'GDP per capita', y = 'Age Standardized Rate of Death') +
-  transition_time(year) +
-  ease_aes('linear') +
-  theme_bw() +
-  theme(text = element_text(size = 15))
-```
+
