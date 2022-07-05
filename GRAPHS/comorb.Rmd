@@ -72,7 +72,7 @@ grouped_comorb %>%
 ```
 
 ```{r}
-ggplot(d, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_age_standardized_rate, size = population_historical_estimates, color = entity)) +
+ggplot(choc, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_age_standardized_rate, size = population_historical_estimates, color = entity)) +
   geom_point(alpha = 0.7, show.legend = FALSE) +
   scale_x_log10() +
   facet_wrap(~continent) +
