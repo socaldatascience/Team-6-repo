@@ -97,7 +97,7 @@ ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity)))
 ```
 
 ```{r}
-#Race and Covid severity
+#Race and severity
 
 raceandseverity <- ggplot(d, aes(x = COVIDseverity, stat = "count", fill = race)) +
   geom_bar(position = position_dodge()) + facet_wrap(~COVIDseverity)
