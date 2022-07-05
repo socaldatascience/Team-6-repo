@@ -27,11 +27,3 @@ glimpse(d)
 ```
 
 
-```{r}
-# d %>% 
-#   mutate(comorb = case_when(
-#     0~ select(d, starts_with("comorb"))==0,
-#     1~ select(d, starts_with("comorb"))==1
-#     ))
-```
-
