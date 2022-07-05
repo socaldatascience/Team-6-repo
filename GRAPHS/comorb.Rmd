@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, warning = FALSE, include = FALSE}
-setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
+setwd("/Users/kate/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
 
 load("cfCOVIDgroup6.RDATA")
 
@@ -14,6 +14,8 @@ library(tidyverse)
 library(data.table)
 library(gganimate)
 library(gifski)
+library(reshape2)
+library(ggplot2)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -70,7 +72,7 @@ grouped_comorb %>%
 ```
 
 ```{r}
-ggplot(joined, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_age_standardized_rate, size = population_historical_estimates, color = entity)) +
+ggplot(d, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_age_standardized_rate, size = population_historical_estimates, color = entity)) +
   geom_point(alpha = 0.7, show.legend = FALSE) +
   scale_x_log10() +
   facet_wrap(~continent) +
@@ -80,3 +82,25 @@ ggplot(joined, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_
   theme_bw() +
   theme(text = element_text(size = 15))
 ```
+
+
+```{r}
+#age and Covid severity
+
+ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity))) +
+  geom_bar(position = position_dodge()) +
+  theme_classic() +
+ scale_fill_manual(values=c('lightskyblue1',
+                            'sandybrown',
+                            'palegreen1',
+                            'lightpink'))
+```
+
+```{r}
+#Race and Covid severity
+
+raceandseverity <- ggplot(d, aes(x = COVIDseverity, stat = "count", fill = race)) +
+  geom_bar(position = position_dodge()) + facet_wrap(~COVIDseverity)
+print(raceandseverity)
+```
+
