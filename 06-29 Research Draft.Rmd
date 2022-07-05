@@ -10,7 +10,6 @@ output: pdf_document
 #library(Microsoft365R)
 #rsrch_data <- get_personal_onedrive()
 #rsrch_data
-
 ```
 
 
