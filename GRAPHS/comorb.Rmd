@@ -6,16 +6,14 @@ output: html_document
 ---
 
 ```{r setup, warning = FALSE, include = FALSE}
-setwd("")
+setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
 
 load("cfCOVIDgroup6.RDATA")
 
 library(tidyverse)
 library(data.table)
 library(gganimate)
-library(gifski)
-library(reshape2)
-
+#library(gifski)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -25,21 +23,16 @@ attach(d)
 ```
 
 
-```{r warning = FALSE}
+```{r}
 
 all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
   -1
 
-all_comorb <- all_comorb %>% 
-  mutate(total_comorb_by_patient = c(rowSums(all_comorb)))
-
-all_comorb %>% 
-  summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
-            var_total = var(total_comorb_by_patient))
-
 detach(d)
 
 attach(all_comorb)
+
+total_comorb_by_patient <- c(rowSums(all_comorb))
 
 colSums(all_comorb)
 
@@ -88,23 +81,5 @@ all_comorb %>%
 ```
 
 
-```{r}
-#age and Covid severity
 
-ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity))) +
-  geom_bar(position = position_dodge()) +
-  theme_classic() +
- scale_fill_manual(values=c('lightskyblue1',
-                            'sandybrown',
-                            'palegreen1',
-                            'lightpink'))
-```
-
-```{r}
-#Race and Covid severity
-
-raceandseverity <- ggplot(d, aes(x = COVIDseverity, stat = "count", fill = race)) +
-  geom_bar(position = position_dodge()) + facet_wrap(~COVIDseverity)
-print(raceandseverity)
-```
 
