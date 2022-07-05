@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup, warning = FALSE, include = FALSE}
+
 setwd("")
 
 load("cfCOVIDgroup6.RDATA")
