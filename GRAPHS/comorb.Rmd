@@ -6,16 +6,14 @@ output: html_document
 ---
 
 ```{r setup, warning = FALSE, include = FALSE}
-setwd("/Users/kate/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
+setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
 
 load("cfCOVIDgroup6.RDATA")
 
 library(tidyverse)
 library(data.table)
 library(gganimate)
-library(gifski)
-library(reshape2)
-library(ggplot2)
+#library(gifski)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -25,17 +23,16 @@ attach(d)
 ```
 
 
-```{r warning = FALSE}
+```{r}
 
 all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
   -1
 
-all_comorb <- all_comorb %>% 
-  mutate(total_comorb_by_patient = c(rowSums(all_comorb)))
-
 detach(d)
 
 attach(all_comorb)
+
+total_comorb_by_patient <- c(rowSums(all_comorb))
 
 colSums(all_comorb)
 
@@ -68,6 +65,7 @@ grouped_comorb %>%
   ggplot(aes(x = comorbidity, y = Patients)) +
   geom_bar(stat = 'identity')
 
+<<<<<<< HEAD
 
 ```
 
@@ -98,9 +96,23 @@ ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity)))
 
 ```{r}
 #Race and severity
+=======
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(data = subset(all_comorb, total_comorb_by_patient > 0), fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(1:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
 
-raceandseverity <- ggplot(d, aes(x = COVIDseverity, stat = "count", fill = race)) +
-  geom_bar(position = position_dodge()) + facet_wrap(~COVIDseverity)
-print(raceandseverity)
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(0:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
 ```
+
+
+>>>>>>> b4b59991207e457521eabcb5dd31c43a37c711cb
+
 

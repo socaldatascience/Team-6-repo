@@ -1,7 +1,15 @@
+colnames(d)
+
 comorb <- d %>% 
   select(personid,contains("comorb"))
 
-comorb %>%   
+
+view(comorb)
+glimpse(comorb)
+
+comorb_log <- comorb %>%   
 mutate_if(is.factor, is.logical)
 
-##  Changed comorbidities from factor to logical 
+
+
+
