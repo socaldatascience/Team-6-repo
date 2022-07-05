@@ -4,12 +4,16 @@ author: "Hester Nguyen"
 date: "6/29/2022"
 output: pdf_document
 ---
-
 ```{r}
 
 #library(Microsoft365R)
 #rsrch_data <- get_personal_onedrive()
 #rsrch_data
+<<<<<<< HEAD:06-29 Research Draft.Rmd
+
+```
+=======
 ```
 
 
+>>>>>>> ac5c7698ff3e83d6d9d14f5a9bcf518e698d960f:GRAPHS/06-29 Research Draft.Rmd
