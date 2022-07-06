@@ -52,6 +52,7 @@ choc <- choc %>%
          comorb_heart_failure_I50 = as.double(comorb_heart_failure_I50)-1,
          comorb_ischemic_heart_disease_I20_I25 = as.double(comorb_ischemic_heart_disease_I20_I25)-1,
          comorb_lung_transplant_Z942 = as.double(comorb_lung_transplant_Z942)-1)
+# a change
 ```
 
 ```{r}
