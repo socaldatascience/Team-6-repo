@@ -129,3 +129,10 @@ ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
   theme(text = element_text(size = 15))
 ```
 
+
+```{r}
+ggplot(all_comorb, aes(total_comorb_by_patient, fill = COVIDseverity)) +
+  geom_bar(position = "fill") +
+  scale_x_continuous(breaks = c(0:10))
+```
+
