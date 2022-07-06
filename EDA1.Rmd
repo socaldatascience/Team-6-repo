@@ -93,6 +93,7 @@ ggplot(choc_generalized, aes(x = lung_transplant, fill = COVIDseverity)) + geom_
 
 ```{r}
 ggplot(choc_generalized, aes(x = nicotine_dependence, fill = COVIDseverity)) + geom_bar()
+
 ```
 
 ```{r}
