@@ -21,14 +21,14 @@ library(tidyverse)
 
 
 
-=======
+
 
 ```{r}
 
 #library(Microsoft365R)
 #rsrch_data <- get_personal_onedrive()
 #rsrch_data
-<<<<<<< HEAD:06-29 Research Draft.Rmd
+
 
 
 glimpse(d)
@@ -106,7 +106,7 @@ comorb_groups
 
 ```
 
-```
+
 
 ```{r}
 #classifying patient's comorbidities into levels
@@ -130,8 +130,18 @@ comorb_type
 
 ```{r}
 comorb_type %>% 
-  ggplot(aes(x = as.factor(COVIDseverity), color = as.factor(comorb_types), fill = as.factor(comorb_types)))+
-  geom_bar()
+  ggplot(aes(x = as.factor(COVIDseverity), , fill = as.factor(comorb_types)))+
+  geom_bar(position = "dodge") +
+  xlab("COVID Severity") +
+  ggtitle("Comorbidity Frequnecy by COVID Severity")
+  scale_fill_discrete(name = "Comorbidity Type", labels = c("Nutritional", 
+                                                            "Nicotine Dependence", 
+                                                            "Cardio Vascular", 
+                                                            "Respiratory",
+                                                            "GI", 
+                                                            "Nutritional", 
+                                                            "Kidney Disease",
+                                                            "None"))
 ```
 
 ```{r}
