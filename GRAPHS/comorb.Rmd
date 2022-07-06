@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, warning = FALSE, include = FALSE}
 
-setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
+setwd("")
 
 load("cfCOVIDgroup6.RDATA")
 
