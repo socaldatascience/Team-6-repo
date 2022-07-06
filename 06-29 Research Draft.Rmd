@@ -121,8 +121,14 @@ comorb_type
 
 ```{r}
 comorb_type %>% 
-  ggplot(aes(x = as.factor(COVIDseverity), color = as.factor(comorb_types), fill = as.factor(comorb_types)))+
-  geom_bar()
+  ggplot(aes(x = as.factor(COVIDseverity), fill = as.factor(comorb_types)))+
+  geom_bar(position = "dodge2") +
+  xlab("COVID Severity") +
+  ylab("Counts") +
+  ggtitle("Comorbidity Frequency by COVID Severity ") +
+  guides(fill=guide_legend(title="Comorbidity"))
+ 
+  
 ```
 
 ```{r}
