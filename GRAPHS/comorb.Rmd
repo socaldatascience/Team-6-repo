@@ -1,0 +1,138 @@
+---
+title: "Liz Comorb Stuff"
+author: "Team 6"
+date: '2022-07-01'
+output: html_document
+---
+
+```{r setup, warning = FALSE, include = FALSE}
+
+setwd("")
+
+load("cfCOVIDgroup6.RDATA")
+
+library(tidyverse)
+library(data.table)
+library(gganimate)
+library(gifski)
+library(reshape2)
+
+all_comorb <- select(d, contains("comorb"))
+
+glimpse(all_comorb)
+
+attach(d)
+```
+
+
+```{r warning = FALSE}
+
+all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
+  -1
+
+all_comorb <- all_comorb %>% 
+  mutate(total_comorb_by_patient = c(rowSums(all_comorb)), 
+         COVIDseverity = d[,73], age_at_encounter = d[,11], service_date = as.Date(d[,9]))
+
+all_comorb %>% 
+  summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
+            var_total = var(total_comorb_by_patient))
+detach(d)
+
+attach(all_comorb)
+
+total_comorb_by_patient <- c(rowSums(all_comorb[,1:21]))
+
+colSums(all_comorb[,1:21])
+
+respiratory_comorb <- all_comorb %>% 
+  select(contains("J")) %>% 
+  sum()
+
+gi_comorb <- select(all_comorb, contains("K", ignore.case = FALSE)) %>% 
+  sum()
+
+nutrition_comorb <- select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition")) %>% 
+  sum()
+
+cardio_comorb <- select(all_comorb, contains("I", ignore.case = FALSE) & 
+         !contains("E", ignore.case = FALSE) & 
+         !contains("K", ignore.case =  FALSE) &
+         !contains("COVIDseverity")) %>% 
+  sum()
+
+grouped_comorb <- data.frame(respiratory_comorb, gi_comorb, nutrition_comorb, 
+                  cardio_comorb, sum(comorb_chronic_kidney_disease_N18), sum(comorb_hemoptysisR042), sum(comorb_lung_transplant_Z942), 
+                  sum(comorb_nicotine_dependence_F17)) %>% 
+  colSums() %>% 
+  melt(value.name = 'Patients') %>% 
+  mutate(comorbidity = c("Respiratory", "GI", "Nutrition", 
+                  "Cardiovascular", "Chronic Kidney Disease", "Hemoptysis", "Lung Transplant", "Nicotine Dependence"))
+
+
+
+grouped_comorb %>% 
+  ggplot(aes(x = comorbidity, y = Patients)) +
+  geom_bar(stat = 'identity')
+
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(data = subset(all_comorb, total_comorb_by_patient > 0), fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(1:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
+
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(0:10)) +
+  xlab("Total Number of Comorbidities per Patient") +
+  ylab("Patients") +
+  facet_wrap(COVIDseverity)
+
+
+```
+
+
+```{r}
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient, fill = COVIDseverity)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0:10)) +
+  xlab("Total Number of Comorbidities per Patient") +
+  ylab("Patients") 
+ 
+
+
+```
+
+
+```{r}
+all_comorb %>% 
+  ggplot(aes(x = COVIDseverity)) +
+  geom_bar(fill = "lightsteelblue") +
+  xlab("COVID_19 Severity") +
+  ylab("Patients") +
+  facet_wrap(total_comorb_by_patient)
+```
+
+
+```{r}
+ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
+  geom_bar(show.legend = FALSE) +
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
+       y = 'Number of Patients') +
+  transition_time(age_at_encounter) +
+  ease_aes('linear') +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+```
+
+
+```{r}
+ggplot(all_comorb, aes(total_comorb_by_patient, fill = COVIDseverity)) +
+  geom_bar(position = "fill") +
+  scale_x_continuous(breaks = c(0:10))
+```
+
