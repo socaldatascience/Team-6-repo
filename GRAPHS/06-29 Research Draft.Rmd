@@ -28,7 +28,7 @@ library(tidyverse)
 #library(Microsoft365R)
 #rsrch_data <- get_personal_onedrive()
 #rsrch_data
-<<<<<<< HEAD:06-29 Research Draft.Rmd
+#06-29 Research Draft.Rmd
 
 
 glimpse(d)
