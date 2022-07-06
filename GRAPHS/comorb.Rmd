@@ -32,7 +32,7 @@ all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>%
 
 all_comorb <- all_comorb %>% 
   mutate(total_comorb_by_patient = c(rowSums(all_comorb)), 
-         COVIDseverity = d[,73])
+         COVIDseverity = d[,73], age_at_encounter = d[,11], service_date = as.Date(d[,9]))
 
 all_comorb %>% 
   summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
@@ -104,5 +104,28 @@ all_comorb %>%
  
 
 
+```
+
+
+```{r}
+all_comorb %>% 
+  ggplot(aes(x = COVIDseverity)) +
+  geom_bar(fill = "lightsteelblue") +
+  xlab("COVID_19 Severity") +
+  ylab("Patients") +
+  facet_wrap(total_comorb_by_patient)
+```
+
+
+```{r}
+ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
+  geom_bar(show.legend = FALSE) +
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
+       y = 'Number of Patients') +
+  transition_time(age_at_encounter) +
+  ease_aes('linear') +
+  theme_bw() +
+  theme(text = element_text(size = 15))
 ```
 
