@@ -133,7 +133,7 @@ comorb_type %>%
   ggplot(aes(x = as.factor(COVIDseverity), , fill = as.factor(comorb_types)))+
   geom_bar(position = "dodge") +
   xlab("COVID Severity") +
-  ggtitle("Comorbidity Frequnecy by COVID Severity")
+  ggtitle("Comorbidity Frequnecy by COVID Severity") +
   scale_fill_discrete(name = "Comorbidity Type", labels = c("Nutritional", 
                                                             "Nicotine Dependence", 
                                                             "Cardio Vascular", 
