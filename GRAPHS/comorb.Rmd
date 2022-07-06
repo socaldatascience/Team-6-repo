@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, warning = FALSE, include = FALSE}
 
-setwd("")
+setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
 
 load("cfCOVIDgroup6.RDATA")
 
@@ -94,4 +94,15 @@ all_comorb %>%
 ```
 
 
+```{r}
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient, fill = COVIDseverity)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0:10)) +
+  xlab("Total Number of Comorbidities per Patient") +
+  ylab("Patients") 
+ 
+
+
+```
 
