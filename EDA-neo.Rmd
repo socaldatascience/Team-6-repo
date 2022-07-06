@@ -7,6 +7,7 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(knitr)
+library(gt)
 ```
 
 
@@ -52,9 +53,27 @@ choc_generalized <- select(choc_generalized, -contains("comorb"))
 
 ```{r}
 
-COVID_respitory = data.frame(choc_generalized$COVIDseverity, choc_generalized$respiratory_disease)
+COVID_respitory_tbl <-  data.frame(choc_generalized$COVIDseverity,
+                               choc_generalized$respiratory_disease)
 
-table(COVID_respitory)
+table(COVID_respitory_tbl, dnn = c("COVID Severity", "Number of Respitory Diseases"))
+
+COVID_cardvasc_tbl <- data.frame(choc_generalized$COVIDseverity, 
+                             choc_generalized$cardiovascular_disease)
+table(COVID_cardvasc_tbl, dnn = c("COVID Severity", "Number of Cardiovascular
+                                Diseases"))
+
+
+#regrex
+# gsub to remove cretain characters 
+```
+
+```{r}
+choc_time <- choc_generalized %>% 
+  mutate(servicedate = as.Date(choc_generalized[,9]),
+         dischargedate = as.Date(choc_generalized[,10]))
+
+difftime(choc_time$dischargedate, choc_time$servicedate, units = "days")
 
 ```
 
