@@ -22,7 +22,7 @@ library(scales)
 
 choc <- d
 
-glimpse(choc)
+
 
 all_comorb <- select(choc, personid, contains("comorb"))
 
@@ -99,5 +99,80 @@ ggplot(choc_generalized, aes(x = nicotine_dependence, fill = COVIDseverity)) + g
 
 ```{r}
 ggplot(choc_generalized, aes(x = hemoptysis, fill = COVIDseverity)) + geom_bar()
+```
+
+```{r}
+
+table_cardiovascular_severity <- 
+  table(choc_generalized$cardiovascular_disease, choc_generalized$COVIDseverity)
+table_cardiovascular_severity
+```
+
+```{r}
+table_nutrition_severity <- 
+  table(choc_generalized$nutrition_disease, choc_generalized$COVIDseverity)
+table_nutrition_severity
+```
+
+```{r}
+table_respiratory_severity <- 
+  table(choc_generalized$respiratory_disease, choc_generalized$COVIDseverity)
+table_respiratory_severity
+```
+
+```{r}
+table_gi_severity <- 
+  table(choc_generalized$gi_disease, choc_generalized$COVIDseverity)
+table_gi_severity
+```
+
+```{r}
+table_lung_severity <- 
+  table(choc_generalized$lung_transplant, choc_generalized$COVIDseverity)
+table_lung_severity
+```
+
+```{r}
+table_nicotine_severity <- 
+  table(choc_generalized$nicotine_dependence, choc_generalized$COVIDseverity)
+table_nicotine_severity
+```
+
+```{r}
+table_hemoptysis_severity <- 
+  table(choc_generalized$hemoptysis, choc_generalized$COVIDseverity)
+table_hemoptysis_severity
+```
+
+```{r}
+table_kidney_severity <- 
+  table(choc_generalized$kidney_disease, choc_generalized$COVIDseverity)
+table_kidney_severity
+```
+
+
+```{r}
+choc_disease_sum <-
+  choc_generalized %>% 
+  mutate(total_disease = rowSums(choc_generalized[,c("respiratory_disease", "cardiovascular_disease", "nutrition_disease", "gi_disease", "lung_transplant", "nicotine_dependence", "hemoptysis", "kidney_disease")]))
+```
+
+
+```{r}
+choc_disease_sum %>% 
+  group_by(total_disease) %>% 
+  count()
+```
+
+```{r}
+choc_disease_sum <-
+  choc_disease_sum %>% 
+  mutate(comorbs_1_2 = case_when(total_disease >= 1 & total_disease <= 2 ~ "True", total_disease > 2 | total_disease == 0 ~ "False"), comorbs_3_4 = case_when(total_disease >= 3 & total_disease <= 4 ~"True", total_disease < 3 | total_disease > 4 ~ "False"), comorbs_5_6 = case_when(total_disease >= 5 & total_disease <= 6 ~ "True", total_disease <= 5 | total_disease > 6 ~ "False"), comorbs_7_8 = case_when(total_disease >= 7 & total_disease <= 8 ~ "True", total_disease < 7 | total_disease > 8 ~ "False"), comorbs_9_10 = case_when(total_disease >= 9 & total_disease <= 10 ~ "True", total_disease < 9 | total_disease > 10 ~ "False"))
+```
+
+```{r}
+choc_disease_sum %>%  
+  group_by(comorbs_9_10) %>% 
+  count()
 ```
 

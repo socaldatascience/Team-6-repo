@@ -1,35 +1,25 @@
 ---
-title: "EDA1"
+title: "EDA Neo"
+author: "Neo Raquinio"
+date: '2022-07-06'
 output: html_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+library(tidyverse)
+library(knitr)
+library(gt)
 ```
 
+
+
 ```{r}
-setwd("/Users/rasulibragimov/Cal State Fullerton/Jaynes, Jessica - Group2")
-dir()
-load("cfCOVIDgroup6.RDATA")
-
-View(d)
-library(tidyverse)
-library(janitor)
-library(corrr)
-library(ggplot2)
-library(dplyr)
-library(scales)
-
 choc <- d
 
 glimpse(choc)
 
-all_comorb <- select(choc, personid, contains("comorb"))
+all_comorb <- choc %>% 
+  select(personid, contains("comorb"))
 
-```
-
-```{r}
-#converts the comorb variables into numeric variables
 choc <- choc %>% 
   mutate(comorb_bronchiectasis_J47 = as.double(comorb_bronchiectasis_J47)-1,
          comorb_copd_J40_J44 = as.double(comorb_copd_J40_J44)-1,
@@ -52,52 +42,38 @@ choc <- choc %>%
          comorb_heart_failure_I50 = as.double(comorb_heart_failure_I50)-1,
          comorb_ischemic_heart_disease_I20_I25 = as.double(comorb_ischemic_heart_disease_I20_I25)-1,
          comorb_lung_transplant_Z942 = as.double(comorb_lung_transplant_Z942)-1)
-# a change
-```
 
-```{r}
-# creates 8 new variables to generalize the comorbidity types
 choc_generalized <-
   choc %>% 
   mutate(respiratory_disease = rowSums(choc[,c("comorb_bronchiectasis_J47", "comorb_copd_J40_J44", "comorb_asthma_J45", "comorb_nasal_polyps_J33", "comorb_pneumothorax_J93", "comorb_resp_failure_J96")]), cardiovascular_disease = rowSums(choc[,c("comorb_essential_hypertension_I10", "comorb_hypertensive_heart_disease_I11", "comorb_heart_failure_I50", "comorb_ischemic_heart_disease_I20_I25")]), nutrition_disease = rowSums(choc[,c("comorb_other_nutritional_deficiencies_E50_E64", "comorb_typeI_diabetes_E10", "comorb_typeII_diabetes_E11","comorb_obesity_overweight_E66", "comorb_malnutrition")]), gi_disease = rowSums(choc[,c("comorb_liver_disease_K70_K77", "comorb_other_GI_notLiver_K_excludesK70K77")]), lung_transplant = comorb_lung_transplant_Z942, nicotine_dependence = comorb_nicotine_dependence_F17, hemoptysis = comorb_hemoptysisR042, kidney_disease = comorb_chronic_kidney_disease_N18)
 
-
-# Gets rid of the old "comorb" variables and leaves the 8 new generalized "comorb" vaiables
 choc_generalized <- select(choc_generalized, -contains("comorb"))
-```
-
-
-```{r}
-# general graphs to see if the new dataset is functional
-```
-
-
-```{r}
-ggplot(choc_generalized, aes(x = respiratory_disease, fill = COVIDseverity)) + geom_bar()
-```
-
-```{r}
-ggplot(choc_generalized, aes(x = cardiovascular_disease, fill = COVIDseverity)) + geom_bar()
-```
-
-```{r}
-ggplot(choc_generalized, aes(x = nutrition_disease, fill = COVIDseverity)) + geom_bar(aes(y = (..count..)/sum(..count..))) + scale_y_continuous(labels = percent)
-```
-
-```{r}
-ggplot(choc_generalized, aes(x = gi_disease, fill = COVIDseverity)) + geom_bar()
-```
-
-```{r}
-ggplot(choc_generalized, aes(x = lung_transplant, fill = COVIDseverity)) + geom_bar()
-```
-
-```{r}
-ggplot(choc_generalized, aes(x = nicotine_dependence, fill = COVIDseverity)) + geom_bar()
 
 ```
 
 ```{r}
-ggplot(choc_generalized, aes(x = hemoptysis, fill = COVIDseverity)) + geom_bar()
+
+COVID_respitory_tbl <-  data.frame(choc_generalized$COVIDseverity,
+                               choc_generalized$respiratory_disease)
+
+table(COVID_respitory_tbl, dnn = c("COVID Severity", "Number of Respitory Diseases"))
+
+COVID_cardvasc_tbl <- data.frame(choc_generalized$COVIDseverity, 
+                             choc_generalized$cardiovascular_disease)
+table(COVID_cardvasc_tbl, dnn = c("COVID Severity", "Number of Cardiovascular
+                                Diseases"))
+
+
+#regrex
+# gsub to remove cretain characters 
+```
+
+```{r}
+choc_time <- choc_generalized %>% 
+  mutate(servicedate = as.Date(choc_generalized[,9]),
+         dischargedate = as.Date(choc_generalized[,10]))
+
+difftime(choc_time$dischargedate, choc_time$servicedate, units = "days")
+
 ```
 
