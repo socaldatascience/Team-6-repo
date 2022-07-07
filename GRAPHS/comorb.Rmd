@@ -16,6 +16,7 @@ library(data.table)
 library(gganimate)
 library(gifski)
 library(reshape2)
+library(viridis)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -40,8 +41,6 @@ all_comorb %>%
 detach(d)
 
 attach(all_comorb)
-
-total_comorb_by_patient <- c(rowSums(all_comorb[,1:21]))
 
 colSums(all_comorb[,1:21])
 
@@ -118,7 +117,8 @@ all_comorb %>%
 
 
 ```{r}
-ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
+include <- ggplot(all_comorb, aes(total_comorb_by_patient, 
+                                  fill = as.factor(age_at_encounter))) +
   geom_bar(show.legend = FALSE) +
   scale_x_continuous(breaks = c(0:10)) +
   labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
@@ -126,13 +126,66 @@ ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
   transition_time(age_at_encounter) +
   ease_aes('linear') +
   theme_bw() +
-  theme(text = element_text(size = 15))
+  theme(text = element_text(size = 15)) +
+  scale_fill_manual(values = c(viridis_pal(option = "C")(26)))
+animate(include, fps = 4)
+
+
 ```
 
 
 ```{r}
 ggplot(all_comorb, aes(total_comorb_by_patient, fill = COVIDseverity)) +
   geom_bar(position = "fill") +
-  scale_x_continuous(breaks = c(0:10))
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(x = 'Total Comorbidities per Patient', y = 'Proportion',
+       fill = 'COVID-19 Severity') +
+  scale_fill_manual(values = c('#EDD9A3', '#F2637F', '#872CA2')) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+```
+
+
+```{r}
+weirdograph <- 
+  all_comorb %>% 
+  filter(COVIDseverity > 0) %>% 
+  ggplot(aes(total_comorb_by_patient,
+         fill = COVIDseverity)) +
+  geom_bar(position = "fill", aes(color = COVIDseverity)) +
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
+       y = 'Number of Patients') +
+  transition_time(age_at_encounter) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+
+animate(weirdograph, nframes = 25, fps = 1)
+
+  
+```
+
+```{r}
+ weirdo2 <-  all_comorb %>% 
+  filter(COVIDseverity > 0) %>% 
+  ggplot(aes(total_comorb_by_patient,
+         fill = COVIDseverity)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
+       y = 'Number of Patients') +
+  transition_time(age_at_encounter) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+weirdo2 + scale_color_brewer()
+  animate(weirdo2, nframes = 25, fps = 1)
+```
+
+
+```{r}
+all_comorb %>% 
+  ggplot(aes(age_at_encounter)) +
+  geom_density(aes(fill = factor(total_comorb_by_patient))) +
+  facet_wrap(COVIDseverity)
 ```
 
