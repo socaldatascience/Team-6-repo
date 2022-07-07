@@ -59,10 +59,11 @@ max(care_time, na.rm = T)
 ```
 
 ```{r}
-ggplot(choc, aes(as.factor(total_comorb), care_time, color = choc$COVIDseverity)) +
+ggplot(choc, aes(as.factor(total_comorb), care_time, color = COVIDseverity)) +
   geom_jitter() +
   labs(x = "Total Comorbidity", y = "Time in Care (Days)") +
-  ggtitle("Time in Care by Total Comorbidities")
+  ggtitle("Time in Care by Total Comorbidities") +
+  scale_color_manual(values = c("#EDD9A3", "#F2637F", "#872CA2"), labels = c("Mild", "Moderate", "Severe"))
 
 ```
 
