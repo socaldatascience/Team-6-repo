@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, warning = FALSE, include = FALSE}
 
-setwd("")
+setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
 
 load("cfCOVIDgroup6.RDATA")
 
@@ -203,4 +203,27 @@ all_comorb %>%
   geom_density(aes(fill = factor(total_comorb_by_patient))) +
   facet_wrap(COVIDseverity)
 ```
+
+
+```{r}
+all_comorb <- all_comorb %>% 
+  mutate(resp_total = rowSums(select(all_comorb, contains("J"))), gi_total =
+           rowSums(select(all_comorb, contains("K", ignore.case = FALSE))), other_total = rowSums(select(all_comorb, contains("comorb") &                                                     !contains("J") & !contains("K", ignore.case = FALSE)                                 & !contains("patient"))))
+
+col_stackt_df <- 
+  rbind(resp_only <- all_comorb %>% 
+  filter(resp_total > 0 & gi_total == 0 & other_total == 0) %>%
+  select(COVIDseverity, age_at_encounter) %>% 
+  mutate(class = 'Respiratory'), gi_only <- all_comorb %>% 
+  filter(resp_total == 0 & gi_total > 0 & other_total == 0) %>% 
+  select(COVIDseverity, age_at_encounter) %>% 
+  mutate(class = 'GI'), other_only <- all_comorb %>% 
+  filter(resp_total == 0 & gi_total == 0 & other_total > 0) %>% 
+  select(COVIDseverity, age_at_encounter) %>% 
+  mutate(class = 'Other'), no_comorb <- all_comorb %>% 
+  filter(resp_total == 0 & gi_total == 0 & other_total == 0) %>%
+  select(COVIDseverity, age_at_encounter) %>% 
+  mutate(class = 'None'))
+```
+
 
