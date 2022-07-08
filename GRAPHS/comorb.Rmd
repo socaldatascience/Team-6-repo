@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, warning = FALSE, include = FALSE}
 
-setwd("")
+setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
 
 load("cfCOVIDgroup6.RDATA")
 
@@ -202,5 +202,12 @@ all_comorb %>%
   ggplot(aes(age_at_encounter)) +
   geom_density(aes(fill = factor(total_comorb_by_patient))) +
   facet_wrap(COVIDseverity)
+```
+
+
+```{r}
+all_comorb <- all_comorb %>% 
+  mutate(resp_total = rowSums(select(all_comorb, contains("J"))), gi_total =
+           rowSums(select(all_comorb, contains("K", ignore.case = FALSE))), other_total = rowSums(select(all_comorb, contains("comorb") &                                                     !contains("J") & !contains("K", ignore.case = FALSE)                                 & !contains("patient"))))
 ```
 
