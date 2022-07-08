@@ -38,10 +38,14 @@ choc <- d %>%
         comorb_heart_failure_I50 = as.integer(comorb_heart_failure_I50)-1,
         comorb_ischemic_heart_disease_I20_I25 = as.integer(comorb_ischemic_heart_disease_I20_I25)-1,
         comorb_lung_transplant_Z942 = as.integer(comorb_lung_transplant_Z942)-1,
-        total_comorb = rowSums(choc[,15:35]),
-        servicedate = as.Date(choc[,9]),
-        dischargedate = as.Date(choc[,10])
+        servicedate = as.Date(d[,9]),
+        dischargedate = as.Date(d[,10])
         )
+
+total_comorb = rowSums(choc[,15:35])
+
+choc <- choc %>% 
+  mutate(total_comorb = total_comorb)
 
 care_time <- as.numeric(difftime(choc$dischargedate, choc$servicedate, units = "days"))
 
@@ -55,10 +59,11 @@ max(care_time, na.rm = T)
 ```
 
 ```{r}
-ggplot(choc, aes(as.factor(total_comorb), care_time, color = choc$COVIDseverity)) +
+ggplot(choc, aes(as.factor(total_comorb), care_time, color = COVIDseverity)) +
   geom_jitter() +
   labs(x = "Total Comorbidity", y = "Time in Care (Days)") +
-  ggtitle("Time in Care by Total Comorbidities")
+  ggtitle("Time in Care by Total Comorbidities") +
+  scale_color_manual(values = c("#EDD9A3", "#F2637F", "#872CA2"), labels = c("Mild", "Moderate", "Severe"))
 
 ```
 
