@@ -138,12 +138,27 @@ animate(include, fps = 4)
 ggplot(all_comorb, aes(total_comorb_by_patient, fill = COVIDseverity)) +
   geom_bar(position = "fill") +
   scale_x_continuous(breaks = c(0:10)) +
-  labs(x = 'Total Comorbidities per Patient', y = 'Proportion',
+  labs(x = 'Comorbidities per Patient', y = 'Proportion',
        fill = 'COVID-19 Severity') +
-  scale_fill_manual(values = c('#EDD9A3', '#F2637F', '#872CA2')) +
+  scale_fill_manual(values = c('#EDD9A3', '#F2637F', '#872CA2'), labels = 
+                      c("Mild", "Moderate", "Severe")) +
   theme_bw() +
   theme(text = element_text(size = 15))
 ```
+
+
+```{r}
+age_sever <- ggplot(all_comorb, aes(age_at_encounter, fill = COVIDseverity)) +
+  geom_bar(position = "fill", show.legend = FALSE) +
+  scale_x_continuous(breaks = c(0:25)) +
+  labs(x = 'Age', y = 'Proportion',
+       fill = 'COVID-19 Severity') +
+  scale_fill_manual(values = c('#EDD9A3', '#F2637F', '#872CA2'), labels = 
+                      c("Mild", "Moderate", "Severe")) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+```
+
 
 
 ```{r}
