@@ -11,6 +11,7 @@ setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 202
 
 load("cfCOVIDgroup6.RDATA")
 
+
 library(tidyverse)
 library(data.table)
 library(gganimate)
@@ -18,9 +19,9 @@ library(gifski)
 library(reshape2)
 library(viridis)
 library(glmnet)
-library(MASS)
 
-all_comorb <- select(d, contains("comorb"))
+
+all_comorb <- dplyr::select(d, contains("comorb"))
 
 glimpse(all_comorb)
 
@@ -285,7 +286,7 @@ all_comorb <- all_comorb %>%
 
 lasso_comorb <- all_comorb %>% 
   select(-service_date) %>% 
-  mutate(COVIDseverity = as.numeric(COVIDseverity))
+  mutate(COVIDseverity = as.factor(COVIDseverity))
 ```
 
 
@@ -303,19 +304,18 @@ test <-  (-train)
 y_test <-  y[test]
 
 lasso_mod <-  glmnet(x[train, ], y[train], alpha = 1,
-                     lambda = grid)
+                     lambda = grid, family = "binomial")
 
-cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1)
+cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1, family = "binomial")
 
 best_lam <-  cv_out$lambda.min
+
 lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
 
-RMSE <-  sqrt(mean((lasso_pred - y_test)^2))
-RMSE
+out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
 
-out <-  glmnet(x, y, alpha = 1, lambda = grid)
 lasso_coef = predict(out, type = "coefficients",
-                         s = best_lam)[1:8, ]
+                         s = best_lam)[1:27, ]
 lasso_coef
 
 lasso_coef[lasso_coef != 0]
