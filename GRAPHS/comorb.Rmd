@@ -280,11 +280,11 @@ intervention, identified by "1" and "2" under the COVIDseverity variable in the
 original data set, as severe, which will now be identified as "1". All mild
 cases will remain as "0".
 ```{r}
-all_comorb <- all_comorb %>% 
+lasso_comorb <- all_comorb %>% 
   mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
                                    COVIDseverity == "0" ~ "0"))
 
-lasso_comorb <- all_comorb %>% 
+lasso_comorb <- lasso_comorb %>% 
   select(-service_date) %>% 
   mutate(COVIDseverity = as.factor(COVIDseverity))
 ```
