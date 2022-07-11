@@ -18,7 +18,7 @@ library(gifski)
 library(reshape2)
 library(viridis)
 library(glmnet)
-library(leaps)
+library(MASS)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -291,7 +291,7 @@ lasso_comorb <- all_comorb %>%
 
 LASSO ?!!!?!!!
 ```{r}
-set.seed(62)
+set.seed(36323)
 x <-  model.matrix(COVIDseverity ~., lasso_comorb)[, -1]
 y <-  lasso_comorb$COVIDseverity
 dim(x)
@@ -320,6 +320,4 @@ lasso_coef
 
 lasso_coef[lasso_coef != 0]
 ```
-
-
 
