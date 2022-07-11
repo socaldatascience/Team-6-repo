@@ -295,7 +295,6 @@ LASSO ?!!!?!!!
 set.seed(36323)
 x <-  model.matrix(COVIDseverity ~., lasso_comorb)[, -1]
 y <-  lasso_comorb$COVIDseverity
-dim(x)
 
 grid <- 10^seq(10, -2, length = 100)
 
@@ -316,8 +315,34 @@ out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
 
 lasso_coef = predict(out, type = "coefficients",
                          s = best_lam)[1:27, ]
-lasso_coef
 
 lasso_coef[lasso_coef != 0]
+```
+
+
+How 'bout linear discriminant analysis?????!!!!!!!!!?!?!?!?!?
+```{r}
+library(MASS)
+
+lda_comorb <- all_comorb[, c(names(lasso_coef[lasso_coef != 0])[-1], "COVIDseverity")]
+
+train_lda <-  sample(nrow(lda_comorb), size = floor(.75 * nrow(lda_comorb)))
+
+train_lda.df <-  as.data.frame(lda_comorb[train_lda,])
+
+test_lda.df <-  as.data.frame(lda_comorb[-train_lda,])
+
+```
+
+lord help me
+
+```{r}
+f <- paste(names(train_lda.df)[12], "~", paste(names(train_lda.df)[-12],
+                                               collapse = " + "))
+
+lda_fit <- lda(as.formula(paste(f)), data = train_lda.df)
+lda_fit
+
+lda_predict <- predict(lda_comorb, newdata = test_lda.df )
 ```
 
