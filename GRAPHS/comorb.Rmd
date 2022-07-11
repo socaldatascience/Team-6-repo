@@ -17,6 +17,8 @@ library(gganimate)
 library(gifski)
 library(reshape2)
 library(viridis)
+library(glmnet)
+library(leaps)
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -44,26 +46,21 @@ attach(all_comorb)
 
 colSums(all_comorb[,1:21])
 
-respiratory_comorb <- all_comorb %>% 
-  select(contains("J")) %>% 
-  sum()
-
-gi_comorb <- select(all_comorb, contains("K", ignore.case = FALSE)) %>% 
-  sum()
-
-nutrition_comorb <- select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition")) %>% 
-  sum()
-
-cardio_comorb <- select(all_comorb, contains("I", ignore.case = FALSE) & 
+grouped_comorb <- data.frame( 
+  select(all_comorb, contains("J")) %>% 
+    sum(), 
+  select(all_comorb, contains("K", ignore.case = FALSE)) %>% 
+    sum(), 
+  select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition")) %>% 
+    sum(), 
+  select(all_comorb, contains("I", ignore.case = FALSE) & 
          !contains("E", ignore.case = FALSE) & 
          !contains("K", ignore.case =  FALSE) &
          !contains("COVIDseverity")) %>% 
-  sum()
-
-grouped_comorb <- data.frame(respiratory_comorb, gi_comorb, nutrition_comorb, 
-                  cardio_comorb, sum(comorb_chronic_kidney_disease_N18), sum(comorb_hemoptysisR042), sum(comorb_lung_transplant_Z942), 
-                  sum(comorb_nicotine_dependence_F17)) %>% 
-  colSums() %>% 
+    sum(),
+  sum(comorb_chronic_kidney_disease_N18), sum(comorb_hemoptysisR042),                  sum(comorb_lung_transplant_Z942), 
+  sum(comorb_nicotine_dependence_F17)) %>% 
+    colSums() %>% 
   melt(value.name = 'Patients') %>% 
   mutate(comorbidity = c("Respiratory", "GI", "Nutrition", 
                   "Cardiovascular", "Chronic Kidney Disease", "Hemoptysis", "Lung Transplant", "Nicotine Dependence"))
@@ -211,19 +208,118 @@ all_comorb <- all_comorb %>%
            rowSums(select(all_comorb, contains("K", ignore.case = FALSE))), other_total = rowSums(select(all_comorb, contains("comorb") &                                                     !contains("J") & !contains("K", ignore.case = FALSE)                                 & !contains("patient"))))
 
 col_stackt_df <- 
-  rbind(resp_only <- all_comorb %>% 
+  rbind(
+  all_comorb %>% 
   filter(resp_total > 0 & gi_total == 0 & other_total == 0) %>%
   select(COVIDseverity, age_at_encounter) %>% 
-  mutate(class = 'Respiratory'), gi_only <- all_comorb %>% 
+  mutate(class = 'Respiratory'), 
+  
+  all_comorb %>% 
   filter(resp_total == 0 & gi_total > 0 & other_total == 0) %>% 
   select(COVIDseverity, age_at_encounter) %>% 
-  mutate(class = 'GI'), other_only <- all_comorb %>% 
+  mutate(class = 'GI'),
+  
+  all_comorb %>% 
   filter(resp_total == 0 & gi_total == 0 & other_total > 0) %>% 
   select(COVIDseverity, age_at_encounter) %>% 
-  mutate(class = 'Other'), no_comorb <- all_comorb %>% 
+  mutate(class = 'Other'), 
+  
+  all_comorb %>% 
   filter(resp_total == 0 & gi_total == 0 & other_total == 0) %>%
   select(COVIDseverity, age_at_encounter) %>% 
   mutate(class = 'None'))
 ```
+
+
+```{r}
+col_stackt_df %>% 
+  ggplot(aes(x = COVIDseverity, fill = class)) +
+  geom_bar(position = 'dodge')
+```
+
+
+```{r}
+percent_sever <- col_stackt_df %>%
+    count(COVIDseverity, class) %>%
+    group_by(COVIDseverity) %>%
+    mutate(percent = (n / sum(n)) * 100) %>%
+    ungroup()
+
+percent_sever_no <- col_stackt_df %>%
+    filter(class != "None") %>% 
+    count(COVIDseverity, class) %>%
+    group_by(COVIDseverity) %>%
+    mutate(percent = (n / sum(n)) * 100) %>%
+    ungroup()
+
+```
+
+```{r}
+percent_sever %>% 
+  ggplot(aes(x = COVIDseverity, y = percent, fill = class)) +
+  geom_bar(stat = 'identity', position = 'dodge')
+
+
+
+percent_sever_no %>% 
+  ggplot(aes(x = COVIDseverity, y = percent, fill = class)) +
+  geom_bar(stat = 'identity', position = 'dodge')
+```
+
+
+```{r}
+col_stackt_df %>% 
+  ggplot(aes(x = age_at_encounter, after_stat(density), color = class)) +
+  geom_freqpoly(binwidth = 5)
+```
+
+
+Preparing data frame for LASSO, I am classifying all cases that require oxygen
+intervention, identified by "1" and "2" under the COVIDseverity variable in the
+original data set, as severe, which will now be identified as "1". All mild
+cases will remain as "0".
+```{r}
+all_comorb <- all_comorb %>% 
+  mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
+                                   COVIDseverity == "0" ~ "0"))
+
+lasso_comorb <- all_comorb %>% 
+  select(-service_date) %>% 
+  mutate(COVIDseverity = as.numeric(COVIDseverity))
+```
+
+
+LASSO ?!!!?!!!
+```{r}
+set.seed(62)
+x <-  model.matrix(COVIDseverity ~., lasso_comorb)[, -1]
+y <-  lasso_comorb$COVIDseverity
+dim(x)
+
+grid <- 10^seq(10, -2, length = 100)
+
+train <-  sample(1: nrow (x), nrow (x) / 2)
+test <-  (-train)
+y_test <-  y[test]
+
+lasso_mod <-  glmnet(x[train, ], y[train], alpha = 1,
+                     lambda = grid)
+
+cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1)
+
+best_lam <-  cv_out$lambda.min
+lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
+
+RMSE <-  sqrt(mean((lasso_pred - y_test)^2))
+RMSE
+
+out <-  glmnet(x, y, alpha = 1, lambda = grid)
+lasso_coef = predict(out, type = "coefficients",
+                         s = best_lam)[1:8, ]
+lasso_coef
+
+lasso_coef[lasso_coef != 0]
+```
+
 
 

@@ -8,6 +8,7 @@ output: html_document
 library(tidyverse)
 library(knitr)
 library(gt)
+library(ggpubr)
 ```
 
 
