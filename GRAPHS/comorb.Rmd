@@ -6,26 +6,30 @@ output: html_document
 ---
 
 ```{r setup, warning = FALSE, include = FALSE}
-<<<<<<< HEAD
+
 #setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
 
 #load("cfCOVIDgroup6.RDATA")
-=======
 
-setwd("")
 
-load("cfCOVIDgroup6.RDATA")
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+#setwd("")
+
+#load("cfCOVIDgroup6.RDATA")
+
 
 library(tidyverse)
 library(data.table)
 library(gganimate)
-<<<<<<< HEAD
+
 #library(gifski)
-=======
+
 library(gifski)
 library(reshape2)
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
+
+
+library(viridis)
+
 
 all_comorb <- select(d, contains("comorb"))
 
@@ -35,17 +39,15 @@ attach(d)
 ```
 
 
-<<<<<<< HEAD
-```{r}
-=======
+
+
 ```{r warning = FALSE}
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
 
 all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
   -1
 
-<<<<<<< HEAD
-=======
+
 all_comorb <- all_comorb %>% 
   mutate(total_comorb_by_patient = c(rowSums(all_comorb)), 
          COVIDseverity = d[,73], age_at_encounter = d[,11], service_date = as.Date(d[,9]))
@@ -53,20 +55,22 @@ all_comorb <- all_comorb %>%
 all_comorb %>% 
   summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
             var_total = var(total_comorb_by_patient))
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
 detach(d)
 
 attach(all_comorb)
 
-<<<<<<< HEAD
+
 total_comorb_by_patient <- c(rowSums(all_comorb))
 
 colSums(all_comorb)
-=======
+
 total_comorb_by_patient <- c(rowSums(all_comorb[,1:21]))
 
+
+
 colSums(all_comorb[,1:21])
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
 
 respiratory_comorb <- all_comorb %>% 
   select(contains("J")) %>% 
@@ -80,12 +84,12 @@ nutrition_comorb <- select(all_comorb, contains("E", ignore.case = FALSE), conta
 
 cardio_comorb <- select(all_comorb, contains("I", ignore.case = FALSE) & 
          !contains("E", ignore.case = FALSE) & 
-<<<<<<< HEAD
+
          !contains("K", ignore.case =  FALSE)) %>% 
-=======
+
          !contains("K", ignore.case =  FALSE) &
          !contains("COVIDseverity")) %>% 
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
   sum()
 
 grouped_comorb <- data.frame(respiratory_comorb, gi_comorb, nutrition_comorb, 
@@ -102,7 +106,7 @@ grouped_comorb %>%
   ggplot(aes(x = comorbidity, y = Patients)) +
   geom_bar(stat = 'identity')
 
-<<<<<<< HEAD
+
 
 
 ```
@@ -117,7 +121,7 @@ grouped_comorb %>%
 #   ease_aes('linear') +
 #   theme_bw() +
 #   theme(text = element_text(size = 15))
-=======
+
 all_comorb %>% 
   ggplot(aes(x = total_comorb_by_patient)) +
   geom_bar(data = subset(all_comorb, total_comorb_by_patient > 0), fill = "lightsteelblue") +
@@ -134,12 +138,12 @@ all_comorb %>%
   facet_wrap(COVIDseverity)
 
 
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
 ```
 
 
 ```{r}
-<<<<<<< HEAD
+
 #age and Covid severity
 
 ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity))) +
@@ -171,17 +175,18 @@ all_comorb %>%
 
 
 
-=======
+```{r}
 all_comorb %>% 
   ggplot(aes(x = total_comorb_by_patient, fill = COVIDseverity)) +
   geom_bar() +
   scale_x_continuous(breaks = c(0:10)) +
   xlab("Total Number of Comorbidities per Patient") +
   ylab("Patients") 
+```
  
 
 
-```
+
 
 
 ```{r}
@@ -195,7 +200,8 @@ all_comorb %>%
 
 
 ```{r}
-ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
+include <- ggplot(all_comorb, aes(total_comorb_by_patient, 
+                                  fill = as.factor(age_at_encounter))) +
   geom_bar(show.legend = FALSE) +
   scale_x_continuous(breaks = c(0:10)) +
   labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
@@ -203,14 +209,67 @@ ggplot(all_comorb, aes(total_comorb_by_patient, fill = "rainbow")) +
   transition_time(age_at_encounter) +
   ease_aes('linear') +
   theme_bw() +
-  theme(text = element_text(size = 15))
+  theme(text = element_text(size = 15)) +
+  scale_fill_manual(values = c(viridis_pal(option = "C")(26)))
+animate(include, fps = 4)
+
+
 ```
 
 
 ```{r}
 ggplot(all_comorb, aes(total_comorb_by_patient, fill = COVIDseverity)) +
   geom_bar(position = "fill") +
-  scale_x_continuous(breaks = c(0:10))
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(x = 'Total Comorbidities per Patient', y = 'Proportion',
+       fill = 'COVID-19 Severity') +
+  scale_fill_manual(values = c('#EDD9A3', '#F2637F', '#872CA2')) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
 ```
->>>>>>> f0d1d648d25f1c177e15ec0d99962de892904430
+
+
+```{r}
+weirdograph <- 
+  all_comorb %>% 
+  filter(COVIDseverity > 0) %>% 
+  ggplot(aes(total_comorb_by_patient,
+         fill = COVIDseverity)) +
+  geom_bar(position = "fill", aes(color = COVIDseverity)) +
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
+       y = 'Number of Patients') +
+  transition_time(age_at_encounter) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+
+animate(weirdograph, nframes = 25, fps = 1)
+
+  
+```
+
+```{r}
+ weirdo2 <-  all_comorb %>% 
+  filter(COVIDseverity > 0) %>% 
+  ggplot(aes(total_comorb_by_patient,
+         fill = COVIDseverity)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0:10)) +
+  labs(title = 'Age: {as.integer(frame_time)}', x = 'Total Comorbidities per Patient',
+       y = 'Number of Patients') +
+  transition_time(age_at_encounter) +
+  theme_bw() +
+  theme(text = element_text(size = 15))
+weirdo2 + scale_color_brewer()
+  animate(weirdo2, nframes = 25, fps = 1)
+```
+
+
+```{r}
+all_comorb %>% 
+  ggplot(aes(age_at_encounter)) +
+  geom_density(aes(fill = factor(total_comorb_by_patient))) +
+  facet_wrap(COVIDseverity)
+```
+
 
