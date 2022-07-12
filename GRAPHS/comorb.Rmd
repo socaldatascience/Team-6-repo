@@ -284,9 +284,11 @@ lasso_comorb <- all_comorb %>%
   mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
                                    COVIDseverity == "0" ~ "0"))
 
-lasso_comorb <- lasso_comorb %>% 
-  select(-service_date) %>% 
-  mutate(COVIDseverity = as.factor(COVIDseverity))
+lasso_comorb <- lasso_comorb[,c(1:21, 23)] %>% 
+  mutate_if(is.numeric, as.factor) %>% 
+  cbind(all_comorb[,c(22, 24, 26:28)])
+
+
 ```
 
 
@@ -295,10 +297,10 @@ LASSO ?!!!?!!!
 set.seed(36323)
 x <-  model.matrix(COVIDseverity ~., lasso_comorb)[, -1]
 y <-  lasso_comorb$COVIDseverity
-
+dim(x)
 grid <- 10^seq(10, -2, length = 100)
 
-train <-  sample(1: nrow (x), nrow (x) / 2)
+train <-  sample(nrow(x), size = floor(.75 * nrow(x)))
 test <-  (-train)
 y_test <-  y[test]
 
@@ -314,7 +316,7 @@ lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
 out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
 
 lasso_coef = predict(out, type = "coefficients",
-                         s = best_lam)[1:27, ]
+                         s = best_lam)[1:26, ]
 
 lasso_coef[lasso_coef != 0]
 ```
@@ -324,7 +326,7 @@ How 'bout linear discriminant analysis?????!!!!!!!!!?!?!?!?!?
 ```{r}
 library(MASS)
 
-lda_comorb <- all_comorb[, c(names(lasso_coef[lasso_coef != 0])[-1], "COVIDseverity")]
+lda_comorb <- all_comorb[, c(1, 6:8, 14, 16:19, 21:23)]
 
 train_lda <-  sample(nrow(lda_comorb), size = floor(.75 * nrow(lda_comorb)))
 
@@ -343,6 +345,37 @@ f <- paste(names(train_lda.df)[12], "~", paste(names(train_lda.df)[-12],
 lda_fit <- lda(as.formula(paste(f)), data = train_lda.df)
 lda_fit
 
-lda_predict <- predict(lda_comorb, newdata = test_lda.df )
+plot(lda_fit)
+
+lda_class <- predict(lda_fit, test_lda.df)$class
 ```
+
+
+```{r}
+table(lda_class, test_lda.df[,"COVIDseverity"])
+```
+
+
+```{r}
+test_cs <- test_lda.df[,"COVIDseverity"]
+lda_class <- as.ordered(lda_class)
+mean(lda_class == test_cs)
+```
+
+```{r}
+lasso_comorb <- lasso_comorb %>% mutate_if(is.numeric, as.factor)
+
+lr_comorb <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_pneumothorax_J93 + comorb_resp_failure_J96 + comorb_malnutrition + comorb_other_GI_notLiver_K_excludesK70K77 + comorb_hypertensive_heart_disease_I11 + comorb_chronic_kidney_disease_N18 + comorb_nicotine_dependence_F17 + comorb_heart_failure_I50 + comorb_lung_transplant_Z942 + total_comorb_by_patient, family = "binomial", data = lasso_comorb)
+
+summary(lr_comorb)
+```
+
+
+```{r}
+library(heplots)
+boxM(lda_comorb[,1:11], lda_comorb[,12])
+```
+
+Sooooooooooo we don't meet the assumptions necessary for LDA :/
+
 
