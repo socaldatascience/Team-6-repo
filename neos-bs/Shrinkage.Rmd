@@ -1,0 +1,32 @@
+---
+title: "Model Dev"
+author: "Neo Raquinio"
+date: '2022-07-06'
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(gt)
+library(ggpubr)
+library(leaps)
+```
+
+
+# Subsettng the data based on treatment 
+
+# Does not include oxygen support as they directly define covid severity in the 
+# data set (ECMO, BiPAP, invasive Ventilisation, etc.)
+```{r}
+
+med_severity <- d %>% 
+  select(personid, COVIDseverity, INOTROPES, REMDESIVIR, CCP, DEXAMETHASONE,
+         ENOXAPARIN, HEPARIN, IVIG, METHYLPREDNISOLONE, RITUXIMAB, TOCILIZUMAB,
+         ASPIRIN, LOPINAVIR_OR_RITONAVIR)
+
+regsubsets(COVIDseverity ~., med_severity, really.big = TRUE)
+
+
+```
+
