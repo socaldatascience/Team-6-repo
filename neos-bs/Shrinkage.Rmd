@@ -8,7 +8,6 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(knitr)
-library(gt)
 library(ggpubr)
 library(leaps)
 library(glmnet)
