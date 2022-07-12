@@ -1,0 +1,160 @@
+---
+title: "EDA Neo"
+author: "Neo Raquinio"
+date: '2022-07-06'
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(knitr)
+library(gt)
+library(ggpubr)
+```
+ 
+
+
+```{r}
+choc <- d
+
+glimpse(choc)
+
+all_comorb <- choc %>% 
+  select(personid, contains("comorb"))
+
+choc <- choc %>% 
+  mutate(comorb_bronchiectasis_J47 = as.double(comorb_bronchiectasis_J47)-1,
+         comorb_copd_J40_J44 = as.double(comorb_copd_J40_J44)-1,
+         comorb_asthma_J45 = as.double(comorb_asthma_J45)-1,
+         comorb_nasal_polyps_J33 = as.double(comorb_nasal_polyps_J33)-1,
+         comorb_hemoptysisR042 = as.double(comorb_hemoptysisR042)-1,
+         comorb_pneumothorax_J93 = as.double(comorb_pneumothorax_J93)-1,
+         comorb_resp_failure_J96 = as.double(comorb_resp_failure_J96)-1,
+         comorb_malnutrition = as.double(comorb_malnutrition)-1,
+         comorb_other_nutritional_deficiencies_E50_E64 = as.double(comorb_other_nutritional_deficiencies_E50_E64)-1,
+         comorb_typeI_diabetes_E10 = as.double(comorb_typeI_diabetes_E10)-1,
+         comorb_typeII_diabetes_E11 = as.double(comorb_typeII_diabetes_E11)-1,
+         comorb_obesity_overweight_E66 = as.double(comorb_obesity_overweight_E66)-1,
+         comorb_liver_disease_K70_K77 = as.double(comorb_liver_disease_K70_K77)-1,
+         comorb_other_GI_notLiver_K_excludesK70K77 = as.double(comorb_other_GI_notLiver_K_excludesK70K77)-1,
+         comorb_essential_hypertension_I10 = as.double(comorb_essential_hypertension_I10)-1,
+         comorb_hypertensive_heart_disease_I11 = as.double(comorb_hypertensive_heart_disease_I11)-1,
+         comorb_chronic_kidney_disease_N18 = as.double(comorb_chronic_kidney_disease_N18)-1,
+         comorb_nicotine_dependence_F17 = as.double(comorb_nicotine_dependence_F17)-1,
+         comorb_heart_failure_I50 = as.double(comorb_heart_failure_I50)-1,
+         comorb_ischemic_heart_disease_I20_I25 = as.double(comorb_ischemic_heart_disease_I20_I25)-1,
+         comorb_lung_transplant_Z942 = as.double(comorb_lung_transplant_Z942)-1)
+
+choc_generalized <-
+  choc %>% 
+  mutate(respiratory_disease = rowSums(choc[,c("comorb_bronchiectasis_J47", "comorb_copd_J40_J44", "comorb_asthma_J45", "comorb_nasal_polyps_J33", "comorb_pneumothorax_J93", "comorb_resp_failure_J96")]), cardiovascular_disease = rowSums(choc[,c("comorb_essential_hypertension_I10", "comorb_hypertensive_heart_disease_I11", "comorb_heart_failure_I50", "comorb_ischemic_heart_disease_I20_I25")]), nutrition_disease = rowSums(choc[,c("comorb_other_nutritional_deficiencies_E50_E64", "comorb_typeI_diabetes_E10", "comorb_typeII_diabetes_E11","comorb_obesity_overweight_E66", "comorb_malnutrition")]), gi_disease = rowSums(choc[,c("comorb_liver_disease_K70_K77", "comorb_other_GI_notLiver_K_excludesK70K77")]), lung_transplant = comorb_lung_transplant_Z942, nicotine_dependence = comorb_nicotine_dependence_F17, hemoptysis = comorb_hemoptysisR042, kidney_disease = comorb_chronic_kidney_disease_N18)
+
+choc_generalized <- select(choc_generalized, -contains("comorb"))
+
+```
+
+```{r}
+
+COVID_respitory_tbl <-  data.frame(choc_generalized$COVIDseverity,
+                               choc_generalized$respiratory_disease)
+
+table(COVID_respitory_tbl, dnn = c("COVID Severity", "Number of Respitory Diseases"))
+
+COVID_cardvasc_tbl <- data.frame(choc_generalized$COVIDseverity, 
+                             choc_generalized$cardiovascular_disease)
+table(COVID_cardvasc_tbl, dnn = c("COVID Severity", "Number of Cardiovascular
+                                Diseases"))
+
+
+#regrex
+# gsub to remove cretain characters 
+```
+
+```{r}
+choc_time <- choc_generalized %>% 
+  mutate(servicedate = as.Date(choc_generalized[,9]),
+         dischargedate = as.Date(choc_generalized[,10]))
+
+difftime(choc_time$dischargedate, choc_time$servicedate, units = "days")
+
+```
+
+```{r}
+density_totalcomorb_caretime <-
+  ggplot(choc) +
+  geom_jitter(aes(as.factor(total_comorb), care_time, color = COVIDseverity)) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())+
+  labs(x = "Total Comorbidity", y = "") +
+  scale_color_manual(values = c("#EDD9A3", "#F2637F", "#872CA2"),
+                     labels = c("Mild", "Moderate", "Severe"))
+
+# theme(axis.text.y = element_blank()
+
+```
+
+
+
+```{r}
+
+choc <- choc %>% 
+  mutate(
+    ECMO = as.numeric(as.character(ECMO)),
+    HFNC = as.numeric(as.character(HFNC)),
+    NC = as.numeric(as.character(NC)),
+    bipapCpapNonInvasive = as.numeric(as.character(bipapCpapNonInvasive)),
+    invasiveMechVentilation = as.numeric(as.character(invasiveMechVentilation)),
+    DELIRIUM = as.numeric(as.character(DELIRIUM)),
+    INOTROPES = as.numeric(as.character(INOTROPES)),
+    REMDESIVIR = as.numeric(as.character(REMDESIVIR)),
+    CCP = as.numeric(as.character(CCP)),
+    DEXAMETHASONE = as.numeric(as.character(DEXAMETHASONE)),
+    ENOXAPARIN = as.numeric(as.character(ENOXAPARIN)),
+    HEPARIN = as.numeric(as.character(HEPARIN)),
+    IVIG = as.numeric(as.character(IVIG)),
+    METHYLPREDNISOLONE = as.numeric(as.character(METHYLPREDNISOLONE)),
+    RITUXIMAB = as.numeric(as.character(RITUXIMAB)),
+    TOCILIZUMAB = as.numeric(as.character(TOCILIZUMAB)),
+    ASPIRIN = as.numeric(as.character(ASPIRIN)),
+    LOPINAVIR_OR_RITONAVIR = as.numeric(as.character(LOPINAVIR_OR_RITONAVIR))
+  )
+
+total_treatments = rowSums(choc[,36:53])
+
+choc %>% 
+  mutate(
+    total_treatments = total_treatments
+  )
+
+choc %>% 
+  summarise(
+    min(total_treatments),
+    max(total_treatments),
+    median(total_treatments),
+    mean(total_treatments)
+  )
+```
+
+```{r}
+
+density_totalcomorb_severity <- ggplot(choc, aes(x = as.factor(total_treatments), 
+                 y = care_time, color = COVIDseverity)) +
+  geom_jitter(show.legend = F) +
+  labs(x = "Total Treatments", y = "Time in Care (Days)") +
+  scale_color_manual(values = c("#EDD9A3", "#F2637F", "#872CA2"), 
+                     labels = c("Mild", "Moderate", "Severe"))
+```
+
+```{r}
+careplot <- ggarrange(density_totalcomorb_severity, density_totalcomorb_caretime)
+
+annotate_figure(careplot, top = text_grob("Time in Care based on \n Total Treatments and Comorbidities", face = "bold"))
+```
+
+
+```{r}
+
+ggplot(choc, aes(x = as.factor(COVIDseverity), y = total_treatments)) +
+  geom_col()
+```
+
+
