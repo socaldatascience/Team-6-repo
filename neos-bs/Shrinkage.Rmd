@@ -8,7 +8,6 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(knitr)
-library(gt)
 library(ggpubr)
 library(leaps)
 library(glmnet)
@@ -124,15 +123,28 @@ choc_comorb_med <- d %>%
   )
 
 
-choc_comorb_med <- choc_comorb_med %>% 
+# choc_comorb_med_sub <- choc_comorb_med %>% 
+#   mutate( COVIDseverity =
+#     case_when( 
+#     COVIDseverity > "0" ~ "1",
+#     COVIDseverity == "0" ~ "0"
+#     )
+#   )
+
+choc_sub_fac <- choc_comorb_med %>% 
+  mutate( 
+    COVIDseverity = case_when(
+      COVIDseverity == 0 ~ 0,
+      COVIDseverity == 1 ~ 1,
+      COVIDseverity == 2 ~ 1
+    ))
+
+choc_sub_fac <- choc_sub_fac %>% 
   mutate(
-    case_when(
-    COVIDseverity > 0~1,
-    COVIDseverity == 0~0
-    )
+    COVIDseverity = as.factor(as.character(COVIDseverity))
   )
 
-choc_comorb_med$COVIDseverity <- as.factor(choc_comorb_med$COVIDseverity)
+lm(COVIDseverity ~ comorb_bronchiectasis_J47, data = choc_sub_fac)
 
 ```
 
