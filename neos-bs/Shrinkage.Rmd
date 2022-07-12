@@ -1,0 +1,94 @@
+---
+title: "Model Dev"
+author: "Neo Raquinio"
+date: '2022-07-06'
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(gt)
+library(ggpubr)
+library(leaps)
+library(glmnet)
+```
+
+
+# Subsettng the data based on treatment 
+
+# Does not include oxygen support as they directly define covid severity in the 
+# data set (ECMO, BiPAP, invasive Ventilisation, etc.)
+```{r}
+
+med_severity <- d %>%
+  select(personid, COVIDseverity, INOTROPES, REMDESIVIR, CCP, DEXAMETHASONE,
+         ENOXAPARIN, HEPARIN, IVIG, METHYLPREDNISOLONE, RITUXIMAB, TOCILIZUMAB,
+         ASPIRIN, LOPINAVIR_OR_RITONAVIR)
+
+# regsubsets(COVIDseverity ~., med_severity, really.big = TRUE)
+
+
+
+med_severity <- med_severity %>% 
+  mutate(
+    anticoagulant = case_when(
+      ENOXAPARIN == 1|
+      HEPARIN == 1~1,
+      ENOXAPARIN == 0&
+      HEPARIN == 0~0),
+    
+    anti_inflamitory = case_when(
+      DEXAMETHASONE == 1|
+      METHYLPREDNISOLONE ==1|
+      TOCILIZUMAB == 1|
+      ASPIRIN == 1~1,
+      DEXAMETHASONE == 0&
+      METHYLPREDNISOLONE == 0&
+      TOCILIZUMAB == 0&
+      ASPIRIN == 0~0),
+    
+    anti_viral = case_when(
+      REMDESIVIR == 1|
+      LOPINAVIR_OR_RITONAVIR == 1~1,
+      REMDESIVIR == 0&
+      LOPINAVIR_OR_RITONAVIR == 0~0),
+    
+    immuno = case_when(
+      CCP == 1|
+      IVIG == 1|
+      RITUXIMAB == 1~1,
+      CCP == 0&
+      IVIG == 0&
+      RITUXIMAB == 0~0)
+     )
+
+medgroup_severity <- med_severity %>% 
+  select(COVIDseverity, anticoagulant, anti_inflamitory, anti_viral, immuno)
+
+regfit.medgroup <- regsubsets(COVIDseverity ~., medgroup_severity)
+summary(regfit.medgroup)
+```
+
+```{r}
+med_group_severity <- med_severity %>% 
+  select(COVIDseverity, anticoagulant, anti_inflamitory, anti_viral, immuno) %>% 
+  mutate(COVIDseverity = as.factor(as.character(COVIDseverity)))
+
+
+
+x <- model.matrix(COVIDseverity ~., med_group_severity)[,-1]
+y <- med_group_severity$COVIDseverity
+
+grid <- 10^seq(10,-2,length = 100)
+
+ridge_med_mod <- glmnet(x, y, alpha = 0, lambda = grid, family = "multinomial")
+
+dim(coef(ridge_med_mod))
+
+ridge_med_mod$lambda
+
+predict(ridge_med_mod, s = 30, type = "coefficients")
+
+``` 
+
