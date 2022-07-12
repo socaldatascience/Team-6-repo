@@ -11,6 +11,7 @@ setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 202
 
 load("cfCOVIDgroup6.RDATA")
 
+
 library(tidyverse)
 library(data.table)
 library(gganimate)
@@ -18,9 +19,9 @@ library(gifski)
 library(reshape2)
 library(viridis)
 library(glmnet)
-library(leaps)
 
-all_comorb <- select(d, contains("comorb"))
+
+all_comorb <- dplyr::select(d, contains("comorb"))
 
 glimpse(all_comorb)
 
@@ -279,22 +280,21 @@ intervention, identified by "1" and "2" under the COVIDseverity variable in the
 original data set, as severe, which will now be identified as "1". All mild
 cases will remain as "0".
 ```{r}
-all_comorb <- all_comorb %>% 
+lasso_comorb <- all_comorb %>% 
   mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
                                    COVIDseverity == "0" ~ "0"))
 
-lasso_comorb <- all_comorb %>% 
+lasso_comorb <- lasso_comorb %>% 
   select(-service_date) %>% 
-  mutate(COVIDseverity = as.numeric(COVIDseverity))
+  mutate(COVIDseverity = as.factor(COVIDseverity))
 ```
 
 
 LASSO ?!!!?!!!
 ```{r}
-set.seed(62)
+set.seed(36323)
 x <-  model.matrix(COVIDseverity ~., lasso_comorb)[, -1]
 y <-  lasso_comorb$COVIDseverity
-dim(x)
 
 grid <- 10^seq(10, -2, length = 100)
 
@@ -303,23 +303,46 @@ test <-  (-train)
 y_test <-  y[test]
 
 lasso_mod <-  glmnet(x[train, ], y[train], alpha = 1,
-                     lambda = grid)
+                     lambda = grid, family = "binomial")
 
-cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1)
+cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1, family = "binomial")
 
 best_lam <-  cv_out$lambda.min
+
 lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
 
-RMSE <-  sqrt(mean((lasso_pred - y_test)^2))
-RMSE
+out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
 
-out <-  glmnet(x, y, alpha = 1, lambda = grid)
 lasso_coef = predict(out, type = "coefficients",
-                         s = best_lam)[1:8, ]
-lasso_coef
+                         s = best_lam)[1:27, ]
 
 lasso_coef[lasso_coef != 0]
 ```
 
 
+How 'bout linear discriminant analysis?????!!!!!!!!!?!?!?!?!?
+```{r}
+library(MASS)
+
+lda_comorb <- all_comorb[, c(names(lasso_coef[lasso_coef != 0])[-1], "COVIDseverity")]
+
+train_lda <-  sample(nrow(lda_comorb), size = floor(.75 * nrow(lda_comorb)))
+
+train_lda.df <-  as.data.frame(lda_comorb[train_lda,])
+
+test_lda.df <-  as.data.frame(lda_comorb[-train_lda,])
+
+```
+
+lord help me
+
+```{r}
+f <- paste(names(train_lda.df)[12], "~", paste(names(train_lda.df)[-12],
+                                               collapse = " + "))
+
+lda_fit <- lda(as.formula(paste(f)), data = train_lda.df)
+lda_fit
+
+lda_predict <- predict(lda_comorb, newdata = test_lda.df )
+```
 
