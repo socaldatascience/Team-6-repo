@@ -11,6 +11,7 @@ library(knitr)
 library(ggpubr)
 library(leaps)
 library(glmnet)
+library(AICcmodavg)
 ```
 
 
@@ -123,15 +124,88 @@ choc_comorb_med <- d %>%
   )
 
 
-choc_comorb_med <- choc_comorb_med %>% 
+# choc_comorb_med_sub <- choc_comorb_med %>% 
+#   mutate( COVIDseverity =
+#     case_when( 
+#     COVIDseverity > "0" ~ "1",
+#     COVIDseverity == "0" ~ "0"
+#     )
+#   )
+
+choc_sub_fac <- choc_comorb_med %>% 
+  mutate( 
+    COVIDseverity = case_when(
+      COVIDseverity == 0 ~ 0,
+      COVIDseverity == 1 ~ 1,
+      COVIDseverity == 2 ~ 1
+    ))
+
+
+  
+
+choc_sub_fac <- choc_sub_fac %>% 
   mutate(
-    case_when(
-    COVIDseverity > 0~1,
-    COVIDseverity == 0~0
-    )
+    COVIDseverity = as.factor(as.character(COVIDseverity))
   )
 
-choc_comorb_med$COVIDseverity <- as.factor(choc_comorb_med$COVIDseverity)
+choc.1 <- choc_sub_fac %>% 
+  mutate_if(is.factor, as.character)
 
+choc.2 <- choc.1 %>% 
+  mutate_if(is.character, as.integer)
+
+```
+
+```{r}
+
+cor(choc.2)
+
+########
+
+resp.glm <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_copd_J40_J44 + 
+                  comorb_asthma_J45 + comorb_nasal_polyps_J33 + 
+                  comorb_hemoptysisR042 + comorb_pneumothorax_J93 +
+                  comorb_resp_failure_J96, data = choc.2, family = binomial)
+
+summary(resp.glm)
+coef(resp.glm)
+
+######
+
+gi.glm <- glm(COVIDseverity ~ comorb_liver_disease_K70_K77 + 
+                comorb_other_GI_notLiver_K_excludesK70K77, 
+              data = choc.2, family = binomial)
+
+summary(gi.glm)
+coef(gi.glm)
+
+##########
+
+vitals.glm <- glm(COVIDseverity ~ admit_tempC + heartrate + respiratoryrate + bmi_ratio + spo2 +
+      bmi_percentile + systolicBP + diastolicBP, data = choc.2, family = binomial)
+
+summary(vitals.glm)
+coef(vitals.glm)
+
+########
+
+lab1.glm <- glm(COVIDseverity ~ bilirubin_total_mg_per_dl + crp_mg_dl + leukocytes_1000_per_uL +
+      lymphocytes_1000_per_uL, 
+    data = choc.2, family = binomial)
+
+summary(lab1.glm)
+coef(lab1.glm)
+
+models <-  list(resp.glm, gi.glm, vitals.glm, lab1.glm)
+mod.names <-  c("resp.glm", "gi.glm", "vitals.glm", "lab1.glm")
+
+aictab(cand.set = models, modnames = mod.names)
+
+# K: The number of parameters in the model.
+# AICc: The AIC value of the model. The lowercase ‘c’ indicates that the AIC has been calculated from the AIC corrected for small sample sizes.
+# Delta_AICc: The difference between the AIC of the best model compared to the current model being compared.
+# AICcWt: The proportion of the total predictive power that can be found in the model.
+# Cum.Wt: The cumulative sum of the AIC weights.
+# LL: The log-likelihood of the model. This tells us how likely the model is, given the data we used.
 ```
 
