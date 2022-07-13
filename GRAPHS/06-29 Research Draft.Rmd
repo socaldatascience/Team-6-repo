@@ -1,0 +1,141 @@
+---
+title: "06-29 Research Draft"
+author: "Hester Nguyen"
+date: "6/29/2022"
+output: pdf_document
+---
+<<<<<<< HEAD:06-29 Research Draft.Rmd
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages}
+library(tidyverse)
+```
+
+## R Markdown
+
+
+
+=======
+
+```{r}
+
+#library(Microsoft365R)
+#rsrch_data <- get_personal_onedrive()
+#rsrch_data
+#06-29 Research Draft.Rmd
+
+
+glimpse(d)
+
+
+```
+
+**Hester's EDA**
+
+```{r}
+#grouping patients into different kinds of comorbidity that they have
+comorb_groups <- d %>% 
+  select(personid, age_at_encounter, encounterid, starts_with("comorb"),COVIDseverity) %>% 
+  mutate(
+         scomorb_J = case_when(
+           comorb_copd_J40_J44 == 1|
+           comorb_nasal_polyps_J33 == 1|
+           comorb_pneumothorax_J93==1|
+           comorb_resp_failure_J96 == 1|
+           comorb_asthma_J45 == 1 |
+           comorb_bronchiectasis_J47 == 1~1,
+           comorb_copd_J40_J44 == 0&
+           comorb_nasal_polyps_J33 == 0&
+           comorb_pneumothorax_J93==0&
+           comorb_resp_failure_J96 == 0&
+           comorb_asthma_J45 == 0&
+           comorb_bronchiectasis_J47 == 0~0
+            
+         ), scomorb_mal = comorb_malnutrition, 
+         scomorb_E = case_when(
+           comorb_typeI_diabetes_E10 == 1|
+           comorb_obesity_overweight_E66 ==1|
+           comorb_typeII_diabetes_E11==1|
+           comorb_other_nutritional_deficiencies_E50_E64 == 1~1,
+           comorb_typeI_diabetes_E10 == 0&
+           comorb_obesity_overweight_E66 ==0&
+           comorb_typeII_diabetes_E11==0&
+           comorb_other_nutritional_deficiencies_E50_E64 == 0~0
+         ),
+         scomorb_K = case_when(
+           comorb_other_GI_notLiver_K_excludesK70K77 == 1|
+           comorb_liver_disease_K70_K77 == 1~1,
+           comorb_other_GI_notLiver_K_excludesK70K77 == 0&
+           comorb_liver_disease_K70_K77 == 0~0
+         ),
+         scomorb_I = case_when(
+           comorb_hypertensive_heart_disease_I11 == 1|
+           comorb_essential_hypertension_I10 == 1|
+           comorb_heart_failure_I50==1|
+           comorb_ischemic_heart_disease_I20_I25==1~1,
+           comorb_hypertensive_heart_disease_I11 == 0&
+           comorb_essential_hypertension_I10 == 0&
+           comorb_heart_failure_I50==0&
+           comorb_ischemic_heart_disease_I20_I25==0~0
+         ),
+         scomorb_F = case_when(
+           comorb_nicotine_dependence_F17 == 1~1,
+           comorb_nicotine_dependence_F17== 0~0
+           
+         ), 
+         scomorb_N = case_when(
+           comorb_chronic_kidney_disease_N18 == 1~1,
+           comorb_chronic_kidney_disease_N18 == 0~0
+         ),
+         scomorb_Z = case_when(
+           comorb_lung_transplant_Z942 == 1~1, 
+           comorb_lung_transplant_Z942 == 0~0
+         )
+         ) %>% 
+  select(-starts_with('comorb'))
+comorb_groups
+
+
+
+
+```
+
+```
+
+```{r}
+#classifying patient's comorbidities into levels
+
+
+comorb_type <- 
+  mutate(comorb_groups,comorb_types = case_when(
+    scomorb_J == 1~'J',
+    scomorb_mal ==1~'mal',
+    scomorb_E==1~'E',
+    scomorb_K ==1 ~'K',
+    scomorb_I == 1~'I',
+    scomorb_F == 1 ~'F',
+    scomorb_N == 1 ~'N',
+    scomorb_Z ==1 ~"Z",
+    TRUE ~ 'None'
+    
+  ))
+comorb_type
+```
+
+```{r}
+comorb_type %>% 
+  ggplot(aes(x = as.factor(COVIDseverity), color = as.factor(comorb_types), fill = as.factor(comorb_types)))+
+  geom_bar()
+```
+
+```{r}
+
+```
+
+

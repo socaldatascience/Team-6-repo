@@ -379,3 +379,5 @@ boxM(lda_comorb[,1:11], lda_comorb[,12])
 Sooooooooooo we don't meet the assumptions necessary for LDA :/
 
 
+
+
