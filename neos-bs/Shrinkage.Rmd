@@ -12,6 +12,8 @@ library(ggpubr)
 library(leaps)
 library(glmnet)
 library(AICcmodavg)
+library(caret)
+rownames(d) <- seq(1,nrow(d))
 ```
 
 
@@ -165,6 +167,7 @@ cor(choc.2)
 choc.2_sub <- regsubsets(COVIDseverity ~., data = choc.2, nvmax = 4)
 summary(choc.2_sub)
 
+
 ########
 
 resp.glm <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_copd_J40_J44 + 
@@ -175,6 +178,11 @@ resp.glm <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_copd_J40_J44 
 summary(resp.glm)
 coef(resp.glm)
 
+choc.2_resp_sub <- regsubsets(COVIDseverity ~comorb_bronchiectasis_J47 + comorb_copd_J40_J44 + 
+                  comorb_asthma_J45 + comorb_nasal_polyps_J33 + 
+                  comorb_hemoptysisR042 + comorb_pneumothorax_J93 +
+                  comorb_resp_failure_J96, data = choc.2, nvmax = 4)
+summary(choc.2_resp_sub)
 ######
 
 gi.glm <- glm(COVIDseverity ~ comorb_liver_disease_K70_K77 + 
@@ -184,6 +192,11 @@ gi.glm <- glm(COVIDseverity ~ comorb_liver_disease_K70_K77 +
 summary(gi.glm)
 coef(gi.glm)
 
+choc.2_gi_sub <- regsubsets(COVIDseverity ~ comorb_liver_disease_K70_K77 + 
+                comorb_other_GI_notLiver_K_excludesK70K77, data = choc.2, nvmax = 2)
+
+summary(choc.2_gi_sub)
+
 ##########
 
 vitals.glm <- glm(COVIDseverity ~ admit_tempC + heartrate + respiratoryrate + bmi_ratio + spo2 +
@@ -192,22 +205,37 @@ vitals.glm <- glm(COVIDseverity ~ admit_tempC + heartrate + respiratoryrate + bm
 summary(vitals.glm)
 coef(vitals.glm)
 
+
+choc.2_vitals_sub <-  regsubsets(COVIDseverity ~ admit_tempC + heartrate +
+                                   respiratoryrate + bmi_ratio + spo2 +
+      bmi_percentile + systolicBP + diastolicBP, data = choc.2, nvmax = 4)
+
+summary(choc.2_vitals_sub)
 ########
 
 lab1.glm <- glm(COVIDseverity ~ bilirubin_total_mg_per_dl + crp_mg_dl + leukocytes_1000_per_uL +
-      lymphocytes_1000_per_uL, 
+      lymphocytes_1000_per_uL + ALP_U_per_L + ALT_U_per_L + AST_U_per_L + LDH_U_per_L +    ferritin_ng_per_mL, 
     data = choc.2, family = binomial)
+
+labt3.glm <- glm(COVIDseverity ~ LDH_U_per_L + AST_U_per_L + ALP_U_per_L, data = choc.2, 
+    family = binomial)
 
 summary(lab1.glm)
 coef(lab1.glm)
 
+summary(labt3.glm)
+coef(labt3.glm)
 
-
+choc.2_lab_sub <- regsubsets(COVIDseverity ~ bilirubin_total_mg_per_dl + crp_mg_dl +
+             leukocytes_1000_per_uL + lymphocytes_1000_per_uL + 
+             ALP_U_per_L + ALT_U_per_L + AST_U_per_L + LDH_U_per_L + 
+             ferritin_ng_per_mL, data = choc.2, nvmax = 4)
+print(summary(choc.2_lab_sub))
 
 ####### AIC of models
 
-models <-  list(resp.glm, gi.glm, vitals.glm, lab1.glm)
-mod.names <-  c("resp.glm", "gi.glm", "vitals.glm", "lab1.glm")
+models <-  list(resp.glm, gi.glm, vitals.glm, lab1.glm, labt3.glm, mix.glm)
+mod.names <-  c("resp.glm", "gi.glm", "vitals.glm", "lab1.glm", "labt3.glm" ,"mix.glm")
 
 aictab(cand.set = models, modnames = mod.names)
 
@@ -217,5 +245,32 @@ aictab(cand.set = models, modnames = mod.names)
 # AICcWt: The proportion of the total predictive power that can be found in the model.
 # Cum.Wt: The cumulative sum of the AIC weights.
 # LL: The log-likelihood of the model. This tells us how likely the model is, given the data we used.
+```
+
+
+```{r}
+
+mix.glm <- glm(COVIDseverity ~ comorb_resp_failure_J96 + comorb_bronchiectasis_J47 + 
+      comorb_other_GI_notLiver_K_excludesK70K77 + comorb_liver_disease_K70_K77 +
+      spo2 + bmi_ratio + respiratoryrate + LDH_U_per_L + AST_U_per_L + ALP_U_per_L,
+    data =choc.2, family = binomial)
+
+summary(mix.glm)
+coef(mix.glm)
+
+```
+```{r}
+choc.2 <- data.frame(choc.2)
+
+rownames(choc.2) <- seq(1, nrow(choc.2))
+view(choc.2)
+
+
+a = seq(1, 9337, 1)
+b = sample(a, 7470, replace = F)
+
+choc_train = choc.2[b,]
+choc_test = choc.2[-b,]
+
 ```
 
