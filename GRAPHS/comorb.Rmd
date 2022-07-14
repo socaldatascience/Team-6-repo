@@ -7,21 +7,42 @@ output: html_document
 
 ```{r setup, warning = FALSE, include = FALSE}
 
-setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
+<<<<<<< HEAD
+#setwd("C:\\Users\\lizvi\\Cal State Fullerton\\Jaynes, Jessica - CSUF CHOC Summer 2022 Research\\Group2")
 
-load("cfCOVIDgroup6.RDATA")
+#load("cfCOVIDgroup6.RDATA")
+
+
+#setwd("")
+
+#load("cfCOVIDgroup6.RDATA")
+=======
+setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
+>>>>>>> ee6935bcafa22e233e0337cbf764b8bd35821ccf
+
 
 
 library(tidyverse)
 library(data.table)
 library(gganimate)
+
+#library(gifski)
+
 library(gifski)
 library(reshape2)
+
+
+
 library(viridis)
 library(glmnet)
 
 
+<<<<<<< HEAD
+
+all_comorb <- select(d, contains("comorb"))
+=======
 all_comorb <- dplyr::select(d, contains("comorb"))
+>>>>>>> ee6935bcafa22e233e0337cbf764b8bd35821ccf
 
 glimpse(all_comorb)
 
@@ -29,10 +50,14 @@ attach(d)
 ```
 
 
+
+
 ```{r warning = FALSE}
+
 
 all_comorb <- all_comorb %>% mutate_if(is.factor, as.numeric) %>% 
   -1
+
 
 all_comorb <- all_comorb %>% 
   mutate(total_comorb_by_patient = c(rowSums(all_comorb)), 
@@ -41,12 +66,36 @@ all_comorb <- all_comorb %>%
 all_comorb %>% 
   summarize(mean_total = mean(total_comorb_by_patient), med_total = median(total_comorb_by_patient), max_total = max(total_comorb_by_patient),
             var_total = var(total_comorb_by_patient))
+
 detach(d)
 
 attach(all_comorb)
 
+
+total_comorb_by_patient <- c(rowSums(all_comorb))
+
+colSums(all_comorb)
+
+total_comorb_by_patient <- c(rowSums(all_comorb[,1:21]))
+
+
+
 colSums(all_comorb[,1:21])
 
+<<<<<<< HEAD
+
+respiratory_comorb <- all_comorb %>% 
+  select(contains("J")) %>% 
+  sum()
+
+gi_comorb <- select(all_comorb, contains("K", ignore.case = FALSE)) %>% 
+  sum()
+
+nutrition_comorb <- select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition")) %>% 
+  sum()
+
+cardio_comorb <- select(all_comorb, contains("I", ignore.case = FALSE) & 
+=======
 grouped_comorb <- data.frame( 
   select(all_comorb, contains("J")) %>% 
     sum(), 
@@ -55,13 +104,27 @@ grouped_comorb <- data.frame(
   select(all_comorb, contains("E", ignore.case = FALSE), contains("nutrition")) %>% 
     sum(), 
   select(all_comorb, contains("I", ignore.case = FALSE) & 
+>>>>>>> ee6935bcafa22e233e0337cbf764b8bd35821ccf
          !contains("E", ignore.case = FALSE) & 
+
+         !contains("K", ignore.case =  FALSE)) %>% 
+
          !contains("K", ignore.case =  FALSE) &
          !contains("COVIDseverity")) %>% 
+<<<<<<< HEAD
+
+  sum()
+
+grouped_comorb <- data.frame(respiratory_comorb, gi_comorb, nutrition_comorb, 
+                  cardio_comorb, sum(comorb_chronic_kidney_disease_N18), sum(comorb_hemoptysisR042), sum(comorb_lung_transplant_Z942), 
+                  sum(comorb_nicotine_dependence_F17)) %>% 
+  colSums() %>% 
+=======
     sum(),
   sum(comorb_chronic_kidney_disease_N18), sum(comorb_hemoptysisR042),                  sum(comorb_lung_transplant_Z942), 
   sum(comorb_nicotine_dependence_F17)) %>% 
     colSums() %>% 
+>>>>>>> ee6935bcafa22e233e0337cbf764b8bd35821ccf
   melt(value.name = 'Patients') %>% 
   mutate(comorbidity = c("Respiratory", "GI", "Nutrition", 
                   "Cardiovascular", "Chronic Kidney Disease", "Hemoptysis", "Lung Transplant", "Nicotine Dependence"))
@@ -71,6 +134,22 @@ grouped_comorb <- data.frame(
 grouped_comorb %>% 
   ggplot(aes(x = comorbidity, y = Patients)) +
   geom_bar(stat = 'identity')
+
+
+
+
+```
+
+```{r}
+# ggplot(choc, aes(gdp_per_capita_ppp_constant_2017_international, deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_age_standardized_rate, size = population_historical_estimates, color = entity)) +
+#   geom_point(alpha = 0.7, show.legend = FALSE) +
+#   scale_x_log10() +
+#   facet_wrap(~continent) +
+#   labs(title = 'Year: {as.integer(frame_time)}', x = 'GDP per capita', y = 'Age Standardized Rate of Death') +
+#   transition_time(year) +
+#   ease_aes('linear') +
+#   theme_bw() +
+#   theme(text = element_text(size = 15))
 
 all_comorb %>% 
   ggplot(aes(x = total_comorb_by_patient)) +
@@ -88,7 +167,41 @@ all_comorb %>%
   facet_wrap(COVIDseverity)
 
 
+
 ```
+
+
+```{r}
+
+#age and Covid severity
+
+ggplot(d, aes(x = as.factor(age_at_encounter), fill = as.factor(COVIDseverity))) +
+  geom_bar(position = position_dodge()) +
+  theme_classicf() +
+ scale_fill_manual(values=c('lightskyblue1',
+                            'sandybrown',
+                            'palegreen1',
+                            'lightpink'))
+```
+
+```{r}
+#Race and severity
+
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(data = subset(all_comorb, total_comorb_by_patient > 0), fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(1:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
+
+all_comorb %>% 
+  ggplot(aes(x = total_comorb_by_patient)) +
+  geom_bar(fill = "lightsteelblue") +
+  scale_x_continuous(breaks = c(0:10)) +
+  xlab("Total Number of Comorbidities") +
+  ylab("Patients")
+```
+
 
 
 ```{r}
@@ -98,10 +211,11 @@ all_comorb %>%
   scale_x_continuous(breaks = c(0:10)) +
   xlab("Total Number of Comorbidities per Patient") +
   ylab("Patients") 
+```
  
 
 
-```
+
 
 
 ```{r}
@@ -203,6 +317,8 @@ all_comorb %>%
 ```
 
 
+<<<<<<< HEAD
+=======
 ```{r}
 all_comorb <- all_comorb %>% 
   mutate(resp_total = rowSums(select(all_comorb, contains("J"))), gi_total =
@@ -284,11 +400,9 @@ lasso_comorb <- all_comorb %>%
   mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
                                    COVIDseverity == "0" ~ "0"))
 
-lasso_comorb <- lasso_comorb[,c(1:21, 23)] %>% 
-  mutate_if(is.numeric, as.factor) %>% 
-  cbind(all_comorb[,c(22, 24, 26:28)])
-
-
+lasso_comorb <- lasso_comorb %>% 
+  select(-service_date) %>% 
+  mutate(COVIDseverity = as.factor(COVIDseverity))
 ```
 
 
@@ -297,10 +411,10 @@ LASSO ?!!!?!!!
 set.seed(36323)
 x <-  model.matrix(COVIDseverity ~., lasso_comorb)[, -1]
 y <-  lasso_comorb$COVIDseverity
-dim(x)
+
 grid <- 10^seq(10, -2, length = 100)
 
-train <-  sample(nrow(x), size = floor(.75 * nrow(x)))
+train <-  sample(1: nrow (x), nrow (x) / 2)
 test <-  (-train)
 y_test <-  y[test]
 
@@ -316,7 +430,7 @@ lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
 out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
 
 lasso_coef = predict(out, type = "coefficients",
-                         s = best_lam)[1:26, ]
+                         s = best_lam)[1:27, ]
 
 lasso_coef[lasso_coef != 0]
 ```
@@ -326,7 +440,7 @@ How 'bout linear discriminant analysis?????!!!!!!!!!?!?!?!?!?
 ```{r}
 library(MASS)
 
-lda_comorb <- all_comorb[, c(1, 6:8, 14, 16:19, 21:23)]
+lda_comorb <- all_comorb[, c(names(lasso_coef[lasso_coef != 0])[-1], "COVIDseverity")]
 
 train_lda <-  sample(nrow(lda_comorb), size = floor(.75 * nrow(lda_comorb)))
 
@@ -345,39 +459,7 @@ f <- paste(names(train_lda.df)[12], "~", paste(names(train_lda.df)[-12],
 lda_fit <- lda(as.formula(paste(f)), data = train_lda.df)
 lda_fit
 
-plot(lda_fit)
-
-lda_class <- predict(lda_fit, test_lda.df)$class
+lda_predict <- predict(lda_comorb, newdata = test_lda.df )
 ```
 
-
-```{r}
-table(lda_class, test_lda.df[,"COVIDseverity"])
-```
-
-
-```{r}
-test_cs <- test_lda.df[,"COVIDseverity"]
-lda_class <- as.ordered(lda_class)
-mean(lda_class == test_cs)
-```
-
-```{r}
-lasso_comorb <- lasso_comorb %>% mutate_if(is.numeric, as.factor)
-
-lr_comorb <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_pneumothorax_J93 + comorb_resp_failure_J96 + comorb_malnutrition + comorb_other_GI_notLiver_K_excludesK70K77 + comorb_hypertensive_heart_disease_I11 + comorb_chronic_kidney_disease_N18 + comorb_nicotine_dependence_F17 + comorb_heart_failure_I50 + comorb_lung_transplant_Z942 + total_comorb_by_patient, family = "binomial", data = lasso_comorb)
-
-summary(lr_comorb)
-```
-
-
-```{r}
-library(heplots)
-boxM(lda_comorb[,1:11], lda_comorb[,12])
-```
-
-Sooooooooooo we don't meet the assumptions necessary for LDA :/
-
-
-
-
+>>>>>>> ee6935bcafa22e233e0337cbf764b8bd35821ccf

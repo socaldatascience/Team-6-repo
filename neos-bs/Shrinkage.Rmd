@@ -8,12 +8,10 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(knitr)
+library(gt)
 library(ggpubr)
 library(leaps)
 library(glmnet)
-library(AICcmodavg)
-library(caret)
-rownames(d) <- seq(1,nrow(d))
 ```
 
 
@@ -77,8 +75,6 @@ regfit.medgroup <- regsubsets(COVIDseverity ~., medgroup_severity)
 summary(regfit.medgroup)
 ```
 
-
-
 ```{r}
 med_group_severity <- med_severity %>% 
   select(COVIDseverity, anticoagulant, anti_inflamitory, anti_viral, immuno) %>% 
@@ -100,6 +96,7 @@ ridge_med_mod$lambda
 predict(ridge_med_mod, s = 30, type = "coefficients")
 
 ``` 
+
 
 
 
