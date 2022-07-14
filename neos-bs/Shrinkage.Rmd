@@ -322,6 +322,16 @@ lSSE.lab1 <- log(sum(na.omit((lab1.glm_pred - choc_test$COVIDseverity)^2)))
 
 ########################
 
+mix.glm_train <- glm(COVIDseverity ~ comorb_resp_failure_J96 + 
+                       comorb_bronchiectasis_J47 + comorb_other_GI_notLiver_K_excludesK70K77 +
+                       comorb_liver_disease_K70_K77 + spo2 + bmi_ratio + 
+                       respiratoryrate + LDH_U_per_L + AST_U_per_L + ALP_U_per_L,
+                       data =choc_train, family = binomial)
+
+mix.glm_pred <- predict(mix.glm_train, newdata = choc_test)
+
+lSSE.mix <- log(sum(na.omit((mix.glm_pred - choc_test$COVIDseverity)^2)))
+
 ########################
 ```
 
