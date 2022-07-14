@@ -282,11 +282,13 @@ cases will remain as "0".
 ```{r}
 lasso_comorb <- all_comorb %>% 
   mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
-                                   COVIDseverity == "0" ~ "0"))
+                                   COVIDseverity == "0" ~ "0")) %>% 
+  mutate(COVIDseverity = as.factor(COVIDseverity))
 
 lasso_comorb <- lasso_comorb[,c(1:21, 23)] %>% 
   mutate_if(is.numeric, as.factor) %>% 
-  cbind(all_comorb[,c(22, 24, 26:28)])
+  cbind(all_comorb[,c(24, 26:28)]) %>% 
+  mutate(total_comorb_by_patient = as.numeric(total_comorb_by_patient))
 
 
 ```
@@ -363,8 +365,6 @@ mean(lda_class == test_cs)
 ```
 
 ```{r}
-lasso_comorb <- lasso_comorb %>% mutate_if(is.numeric, as.factor)
-
 lr_comorb <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_pneumothorax_J93 + comorb_resp_failure_J96 + comorb_malnutrition + comorb_other_GI_notLiver_K_excludesK70K77 + comorb_hypertensive_heart_disease_I11 + comorb_chronic_kidney_disease_N18 + comorb_nicotine_dependence_F17 + comorb_heart_failure_I50 + comorb_lung_transplant_Z942 + total_comorb_by_patient, family = "binomial", data = lasso_comorb)
 
 summary(lr_comorb)
@@ -379,5 +379,135 @@ boxM(lda_comorb[,1:11], lda_comorb[,12])
 Sooooooooooo we don't meet the assumptions necessary for LDA :/
 
 
+```{r}
+all_comorb <-  all_comorb %>%
+  mutate(
+  age_group = case_when(age_at_encounter <= 12 ~ "1. child",
+                        age_at_encounter > 12 & age_at_encounter <= 17 ~                                "2. teen",
+                        age_at_encounter > 17 ~ "3. adult") ) %>% 
+  mutate_if(is.character, as.factor)
+
+con_comorb <- all_comorb[, c("COVIDseverity",
+                            "total_comorb_by_patient", "age_group")] %>% 
+  mutate(severity = case_when(COVIDseverity > "0" ~ "1",
+                                   COVIDseverity == "0" ~ "0")) %>% 
+  filter(total_comorb_by_patient <= 1) %>% 
+  mutate(severity = as.numeric(severity), comorb = total_comorb_by_patient) %>% 
+  as.matrix()
+
+
+```
+
+```{r}
+
+con_table <- xtabs(~ age_group + comorb + severity, 
+                   data = con_comorb)
+ftable(prop.table(con_table, c(1,2)))
+```
+
+
+```{r}
+
+ftable(con_table)
+```
+
+
+```{r}
+comorb <- c("0", "1")
+severity <-  c("mild", "severe")
+age <- c("child", "teen", "adult")
+
+table <-  expand.grid(comorb = comorb, severity = severity,
+                      age = age)
+
+count <-  c(1123, 674, 76, 59, 1094, 487, 44, 15, 1879, 1116, 164, 79)
+
+table <- cbind(table, count = count)
+
+table
+```
+
+
+```{r}
+pls <- xtabs(count ~ comorb + severity + age, table)
+pls
+```
+
+
+```{r}
+ftable(pls)
+```
+
+
+```{r}
+Frequency <- as.vector(margin.table(pls, 3))
+
+CumFrequency <- cumsum(Frequency)
+
+cbind(age,Frequency = Frequency,Percentage=Frequency/sum(Frequency),
+      CumFrequency = CumFrequency,
+      CumPercentage = CumFrequency/sum(Frequency))
+ 
+
+ 
+Frequency <- as.vector(margin.table(pls, 2))
+CumFrequency <- cumsum(Frequency)
+cbind(severity, Frequency = Frequency,
+      Percentage = Frequency/sum(Frequency),
+      CumFrequency = CumFrequency,
+      CumPercentage = CumFrequency/sum(Frequency))
+ 
+
+ 
+Frequency <- as.vector(margin.table(pls,1))
+
+CumFrequency <- cumsum(Frequency)
+
+cbind(comorb,Frequency = Frequency,
+      Percentage = Frequency/sum(Frequency),
+      CumFrequency = CumFrequency,
+      CumPercentage = CumFrequency/sum(Frequency))
+```
+
+
+The following is a test for mutual independence
+```{r}
+E <- array(NA, dim(pls))
+for (i in 1:dim(pls)[1]) {
+for (j in 1:dim(pls)[2]) {
+for (k in 1:dim(pls)[3]) {
+E[i,j,k] = (margin.table(pls,3)[k] * margin.table(pls,2)[j] * margin.table(pls,1))[i] / (sum(pls))^2
+}}}
+
+E
+```
+
+
+```{r}
+df <- (length(pls) - 1) - (sum(dim(pls)) - 3)
+
+X2 <-  sum((pls - E)^2 / E)
+X2
+
+1 - pchisq(X2, df)
+
+G2 <- 2 * sum(pls * log(pls / E))
+G2
+
+1 - pchisq(G2, df)
+```
+The tests imply that the variables for COVID severity, age group, and presence 
+of one or no comorbidities are not mutually independent
+
+
+Test for joint independence of (severity, age group and comorbidity)
+```{r}
+ji_sac <- ftable(pls, row.vars = c(3, 2))
+
+results <- chisq.test(ji_sac)
+results
+```
+Since the chi-squared value is large and the p-value is close to 0, this indicates that COVID severity is not independent of age group and comorbidity.
+This means age_group*comorbidity cannot predict covid severity.
 
 
