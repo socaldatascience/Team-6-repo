@@ -1202,3 +1202,16 @@ summary(glm.reduced)
 
 ```
 
+
+**CLM model**  
+
+```{r}
+clm.mod2 <-  clmm2(location = COVIDseverity ~ care_time + age_at_encounter + 
+    as.factor(comorb_bronchiectasis_J47) + as.factor(comorb_resp_failure_J96) + 
+    INOTROPES + DEXAMETHASONE + ENOXAPARIN + HEPARIN + METHYLPREDNISOLONE + 
+    ASPIRIN "", 
+    random = as.factor(personid), data = choc_by_visit, Hess = TRUE)
+summary(clm.mod2)
+```
+
+
