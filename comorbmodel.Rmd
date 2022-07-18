@@ -75,10 +75,9 @@ roughly 25% of the sample.
 ```{r}
 train <-  sample(nrow(first_enc), size = floor(.75 * nrow(first_enc)))
 
-glm_fit <- glm(COVIDseverity ~ ., 
-               data = first_enc[,c(4:25, 27:28)], family = "binomial")
-
-summary(glm_fit)
+glm(COVIDseverity ~ ., 
+               data = first_enc[,c(4:25, 27:28)], family = "binomial") %>% 
+  summary()
 ```
 
 
@@ -109,5 +108,9 @@ glm(COVIDseverity ~ .,
   summary()
 ```
 
+
+```{r}
+
+```
 
 
