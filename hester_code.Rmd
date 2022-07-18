@@ -1067,4 +1067,151 @@ choc_by_visit <- choc_by_visit %>%
                                         COVIDseverity == 0~0))
 ```
 
+**FOR NEO**  
+
+```{r}
+choc_by_visit <- mutate(choc_by_visit,
+         resp = case_when(
+           comorb_copd_J40_J44 == 1|
+           comorb_nasal_polyps_J33 == 1|
+           comorb_pneumothorax_J93==1|
+           comorb_resp_failure_J96 == 1|
+           comorb_asthma_J45 == 1 |
+           comorb_bronchiectasis_J47 == 1~1,
+           comorb_copd_J40_J44 == 0&
+           comorb_nasal_polyps_J33 == 0&
+           comorb_pneumothorax_J93==0&
+           comorb_resp_failure_J96 == 0&
+           comorb_asthma_J45 == 0&
+           comorb_bronchiectasis_J47 == 0~0
+            
+         ), hemoptysis = comorb_hemoptysisR042, 
+         nutrition = case_when(
+           comorb_typeI_diabetes_E10 == 1|
+           comorb_obesity_overweight_E66 ==1|
+           comorb_typeII_diabetes_E11==1|
+           comorb_other_nutritional_deficiencies_E50_E64 == 1|
+           comorb_malnutrition == 1~1,
+           comorb_typeI_diabetes_E10 == 0&
+           comorb_obesity_overweight_E66 ==0&
+           comorb_typeII_diabetes_E11==0&
+           comorb_other_nutritional_deficiencies_E50_E64 == 0&
+           comorb_malnutrition == 0~0
+         ),
+         gi = case_when(
+           comorb_other_GI_notLiver_K_excludesK70K77 == 1|
+           comorb_liver_disease_K70_K77 == 1~1,
+           comorb_other_GI_notLiver_K_excludesK70K77 == 0&
+           comorb_liver_disease_K70_K77 == 0~0
+         ),
+         cardio = case_when(
+           comorb_hypertensive_heart_disease_I11 == 1|
+           comorb_essential_hypertension_I10 == 1|
+           comorb_heart_failure_I50==1|
+           comorb_ischemic_heart_disease_I20_I25==1~1,
+           comorb_hypertensive_heart_disease_I11 == 0&
+           comorb_essential_hypertension_I10 == 0&
+           comorb_heart_failure_I50==0&
+           comorb_ischemic_heart_disease_I20_I25==0~0
+         ),
+         nicotine = case_when(
+           comorb_nicotine_dependence_F17 == 1~1,
+           comorb_nicotine_dependence_F17== 0~0
+           
+         ), 
+         kidney = case_when(
+           comorb_chronic_kidney_disease_N18 == 1~1,
+           comorb_chronic_kidney_disease_N18 == 0~0
+         ),
+         lung_trans = case_when(
+           comorb_lung_transplant_Z942 == 1~1, 
+           comorb_lung_transplant_Z942 == 0~0
+         )
+         ) 
+
+choc_by_visit <-  choc_by_visit %>% 
+   mutate(has_comorb = case_when(comorb_bronchiectasis_J47==0&
+             comorb_copd_J40_J44==0&
+             comorb_asthma_J45==0&
+             comorb_nasal_polyps_J33==0&
+             comorb_hemoptysisR042==0&
+             comorb_pneumothorax_J93==0&
+             comorb_resp_failure_J96==0&
+             comorb_malnutrition==0&
+             comorb_other_nutritional_deficiencies_E50_E64==0&
+             comorb_typeI_diabetes_E10==0&
+             comorb_typeII_diabetes_E11==0&
+             comorb_obesity_overweight_E66==0&
+             comorb_liver_disease_K70_K77==0&
+             comorb_other_GI_notLiver_K_excludesK70K77==0&
+             comorb_essential_hypertension_I10==0&
+             comorb_hypertensive_heart_disease_I11==0&
+             comorb_chronic_kidney_disease_N18==0&
+             comorb_nicotine_dependence_F17==0&
+             comorb_heart_failure_I50==0&
+             comorb_ischemic_heart_disease_I20_I25==0&
+             comorb_lung_transplant_Z942==0~0,
+             comorb_bronchiectasis_J47==1|
+             comorb_copd_J40_J44==1|
+             comorb_asthma_J45==1|
+             comorb_nasal_polyps_J33==1|
+             comorb_hemoptysisR042==1|
+             comorb_pneumothorax_J93==1|
+             comorb_resp_failure_J96==1|
+             comorb_malnutrition==1|
+             comorb_other_nutritional_deficiencies_E50_E64==1|
+             comorb_typeI_diabetes_E10==1|
+             comorb_typeII_diabetes_E11==1|
+             comorb_obesity_overweight_E66==1|
+             comorb_liver_disease_K70_K77==1|
+             comorb_other_GI_notLiver_K_excludesK70K77==1|
+             comorb_essential_hypertension_I10==1|
+             comorb_hypertensive_heart_disease_I11==1|
+             comorb_chronic_kidney_disease_N18==1|
+             comorb_nicotine_dependence_F17==1|
+             comorb_heart_failure_I50==1|
+             comorb_ischemic_heart_disease_I20_I25==1|
+             comorb_lung_transplant_Z942==1
+              ~1
+            ))
+
+choc_by_visit_noNA <- choc_by_visit[!is.na(choc_by_visit$care_time), ]
+
+choc_by_visit_noNA <- choc_by_visit_noNA %>% 
+  mutate(has_trt = case_when(INOTROPES == 1 |
+                            REMDESIVIR==1|
+                            DEXAMETHASONE==1|
+                            HEPARIN==1|
+                            METHYLPREDNISOLONE==1|
+                            TOCILIZUMAB==1|
+                            LOPINAVIR_OR_RITONAVIR==1|
+                            ASPIRIN==1|
+                            RITUXIMAB==1|
+                            IVIG==1|
+                            ENOXAPARIN==1|
+                            CCP==1~1,TRUE~0))
+
+ glm.group <- glm(as.factor(bin_COVIDseverity) ~ care_time + age_at_encounter + as.factor(resp)+ as.factor(nutrition)+ as.factor(gi) + as.factor(cardio)+as.factor(nicotine)+as.factor(kidney)+ as.factor(lung_trans)+as.factor(hemoptysis) +as.factor(anticoagulant) + as.factor(anti_inflamitory)+
+                    as.factor(anti_viral)+as.factor(immuno), data = choc_by_visit,
+                  family =binomial(link  = "logit"))
+ summary(glm.group)
+ 
+ 
+ glm.reduced <- glm(as.factor(bin_COVIDseverity) ~ as.factor(has_comorb)+as.factor(has_trt)+care_time + age_at_encounter, data = choc_by_visit_noNA, family= binomial(link = "logit") )
+summary(glm.reduced)
+
+```
+
+
+**CLM model**  
+
+```{r}
+clm.mod2 <-  clmm2(location = COVIDseverity ~ care_time + age_at_encounter + 
+    as.factor(comorb_bronchiectasis_J47) + as.factor(comorb_resp_failure_J96) + 
+    INOTROPES + DEXAMETHASONE + ENOXAPARIN + HEPARIN + METHYLPREDNISOLONE + 
+    ASPIRIN "", 
+    random = as.factor(personid), data = choc_by_visit, Hess = TRUE)
+summary(clm.mod2)
+```
+
 
