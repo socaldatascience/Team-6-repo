@@ -205,8 +205,14 @@ all_comorb %>%
 
 ```{r}
 all_comorb <- all_comorb %>% 
-  mutate(resp_total = rowSums(select(all_comorb, contains("J"))), gi_total =
-           rowSums(select(all_comorb, contains("K", ignore.case = FALSE))), other_total = rowSums(select(all_comorb, contains("comorb") &                                                     !contains("J") & !contains("K", ignore.case = FALSE)                                 & !contains("patient"))))
+  mutate(resp_total = as.numeric(rowSums(select(all_comorb, contains("J")))), gi_total =
+           as.numeric(rowSums(select(all_comorb, contains("K", ignore.case = FALSE)))), other_total = as.numeric(rowSums(select(all_comorb, contains("comorb") &                                                     !contains("J") & !contains("K", ignore.case = FALSE)                                 & !contains("patient")))))
+
+all_comorb_clean <- all_comorb[,c(1:21)] %>% 
+  mutate_if(is.numeric, as.factor) %>% 
+  cbind(all_comorb[,c(22:28)]) %>% 
+  select(-service_date)
+ 
 
 col_stackt_df <- 
   rbind(
@@ -280,16 +286,10 @@ intervention, identified by "1" and "2" under the COVIDseverity variable in the
 original data set, as severe, which will now be identified as "1". All mild
 cases will remain as "0".
 ```{r}
-lasso_comorb <- all_comorb %>% 
+lasso_comorb <- all_comorb_clean[,c(1:24)] %>% 
   mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
                                    COVIDseverity == "0" ~ "0")) %>% 
   mutate(COVIDseverity = as.factor(COVIDseverity))
-
-lasso_comorb <- lasso_comorb[,c(1:21, 23)] %>% 
-  mutate_if(is.numeric, as.factor) %>% 
-  cbind(all_comorb[,c(24, 26:28)]) %>% 
-  mutate(total_comorb_by_patient = as.numeric(total_comorb_by_patient))
-
 
 ```
 
@@ -318,7 +318,7 @@ lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
 out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
 
 lasso_coef = predict(out, type = "coefficients",
-                         s = best_lam)[1:26, ]
+                         s = best_lam)[1:24, ]
 
 lasso_coef[lasso_coef != 0]
 ```
@@ -328,7 +328,7 @@ How 'bout linear discriminant analysis?????!!!!!!!!!?!?!?!?!?
 ```{r}
 library(MASS)
 
-lda_comorb <- all_comorb[, c(1, 6:8, 14, 16:19, 21:23)]
+lda_comorb <- all_comorb_clean[, c(1, 6:8, 14, 16:19, 21:23)]
 
 train_lda <-  sample(nrow(lda_comorb), size = floor(.75 * nrow(lda_comorb)))
 
@@ -380,14 +380,14 @@ Sooooooooooo we don't meet the assumptions necessary for LDA :/
 
 
 ```{r}
-all_comorb <-  all_comorb %>%
+all_comorb_clean <-  all_comorb_clean %>%
   mutate(
   age_group = case_when(age_at_encounter <= 12 ~ "1. child",
                         age_at_encounter > 12 & age_at_encounter <= 17 ~                                "2. teen",
                         age_at_encounter > 17 ~ "3. adult") ) %>% 
   mutate_if(is.character, as.factor)
 
-con_comorb <- all_comorb[, c("COVIDseverity",
+con_comorb <- all_comorb_clean[, c("COVIDseverity",
                             "total_comorb_by_patient", "age_group")] %>% 
   mutate(severity = case_when(COVIDseverity > "0" ~ "1",
                                    COVIDseverity == "0" ~ "0")) %>% 
@@ -510,4 +510,83 @@ results
 Since the chi-squared value is large and the p-value is close to 0, this indicates that COVID severity is not independent of age group and comorbidity.
 This means age_group*comorbidity cannot predict covid severity.
 
+```{r}
+mantelhaen.test(pls)
+
+mantelhaen.test(pls, correct = FALSE)
+```
+
+
+```{r}
+
+
+lasso_group <- all_comorb_clean %>% 
+  mutate(COVIDseverity = case_when(COVIDseverity > "0" ~ "1",
+                                   COVIDseverity == "0" ~ "0"))
+
+lasso_group <- lasso_group[,c(23, 26:28)]
+ 
+
+set.seed(36323)
+x.2 <-  model.matrix(COVIDseverity ~., lasso_group)[, -1]
+y.2 <-  lasso_group$COVIDseverity
+
+grid.2 <- 10^seq(10, -2, length = 100)
+
+train.2 <-  sample(nrow(x.2), size = floor(.75 * nrow(x.2)))
+test.2 <-  (-train.2)
+y_test.2 <-  y.2[test.2]
+
+lasso_mod.2 <-  glmnet(x.2[train.2, ], y.2[train.2], alpha = 1,
+                     lambda = grid.2, family = "binomial")
+
+cv_out.2 <- cv.glmnet(x.2[train.2, ], y.2[train.2], alpha = 1, family = "binomial")
+
+best_lam.2 <-  cv_out.2$lambda.min
+
+lasso_pred.2 <-  predict(lasso_mod.2, s = best_lam.2, newx = x.2[test.2, ])
+
+out.2 <-  glmnet(x.2, y.2, alpha = 1, lambda = grid.2, family = "binomial")
+
+lasso_coef.2 = predict(out.2, type = "coefficients",
+                         s = best_lam.2)[1:3, ]
+
+lasso_coef.2[lasso_coef.2 != 0]
+```
+
+
+```{r}
+glm_df <- all_comorb_clean %>% 
+  mutate(COVIDseverity = as.factor(case_when(COVIDseverity > "0" ~ "Severe",
+                                   COVIDseverity == "0" ~ "Mild")))
+
+  
+train <-  sample(nrow(all_comorb_clean), size = floor(.75 * nrow(all_comorb_clean)))
+
+
+
+glm_fit <- glm(COVIDseverity ~ comorb_bronchiectasis_J47 + 
+                 comorb_pneumothorax_J93 + comorb_resp_failure_J96 + 
+                 comorb_malnutrition + comorb_nicotine_dependence_F17, 
+               data = glm_df, family = "binomial", subset = train)
+
+glm_fit
+```
+
+
+```{r}
+glm_probs <- predict(glm_fit, type = "response")
+glm_probs[1:10]
+
+contrasts(glm_df[,"COVIDseverity"])
+```
+
+```{r}
+glm_pred <- rep("Mild", 9337)
+glm_pred[glm_probs > .5] = "Severe"
+
+table(glm_pred, glm_fit[,"COVIDseverity"])
+
+mean(glm_pred == glm_fit[,"COVIDseverity"])
+```
 
