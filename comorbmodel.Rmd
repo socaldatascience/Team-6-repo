@@ -42,6 +42,13 @@ first_enc <- all_comorb %>%
 table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter)
 
 cumsum(table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter))  
+
+first_enc_all <- d %>% 
+   mutate(servicedate = as.Date(d[,"servicedate"]), 
+          personid = as.factor(personid)) %>% 
+  arrange_at("servicedate") %>% 
+  distinct(personid, .keep_all = TRUE)
+          
 ```
 
 
@@ -108,6 +115,35 @@ glm(COVIDseverity ~ .,
 ```
 
 
+LASSO ?!!!?!!!
+```{r}
+set.seed(622)
+x <-  model.matrix(COVIDseverity ~., first_enc[,c(4:28)])[, -1]
+y <-  first_enc$COVIDseverity
+
+grid <- 10^seq(10, -2, length = 100)
+
+train <-  sample(nrow(x), size = floor(.8 * nrow(x)))
+test <-  (-train)
+y_test <-  y[test]
+
+lasso_mod <-  glmnet(x[train, ], y[train], alpha = 1,
+                     lambda = grid, family = "binomial")
+
+cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1, family = "binomial")
+
+best_lam <-  cv_out$lambda.min
+
+lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
+
+out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
+
+lasso_coef = predict(out, type = "coefficients",
+                         s = best_lam)[1:27, ]
+
+lasso_coef[lasso_coef != 0]
+```
+
 ```{r}
 
 
@@ -128,7 +164,7 @@ olr_df <- d %>%
 
 library(MASS)
 
-train <-  sample(nrow(olr_df), size = floor(.90 * nrow(olr_df)))
+train <-  sample(nrow(olr_df), size = floor(.80 * nrow(olr_df)))
 
 dtrain <- olr_df[train,]
 test <- olr_df[-train,]
@@ -141,11 +177,22 @@ olr_fit <- polr(COVIDseverity ~ comorb_bronchiectasis_J47 +
                 comorb_heart_failure_I50, data = dtrain,
               Hess = TRUE)
 
-test <- olr_df[-train,]
+
 glm_probs = predict(olr_fit, test)
 
 table(test$COVIDseverity, glm_probs)
 mean(as.character(olr_df[-train,]$COVIDseverity) != as.character(COVIDseverity))
+
+```
+
+```{r}
+payer_olr <- polr(COVIDseverity ~ payer, data = dtrain, Hess = TRUE)
+
+payer_probs = predict(payer_olr, test)
+
+table(test$COVIDseverity, payer_probs)
+mean(as.character(olr_df[-train,]$COVIDseverity) != as.character(COVIDseverity))
+
 
 ```
 
