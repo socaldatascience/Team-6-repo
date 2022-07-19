@@ -9,7 +9,9 @@ library(Hmisc)
 library(reshape2)
 library(foreign)
 library(ordinal)
+library(geepack)
 
+load("C:/Users/neoda/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2/cfCOVIDgroup6.RDATA")
 
 glimpse(d)
 choc.sub <- d %>%
@@ -139,6 +141,46 @@ var.nutr <- regsubsets(COVIDseverity ~ comorb_obesity_overweight_E66 +
              comorb_typeII_diabetes_E11, data = choc.sub,
            method = "backward")
 summary(var.nutr)
+
+### BOOTSTRAP ###
+
+
+
+d %>% 
+  summarise(
+    
+  med_heart_rate = median(na.omit(heartrate)),
+  mean_heart_rate = mean(na.omit(heartrate)),
+  #average hr 60 - 100
+  med_resp_rate = median(na.omit(respiratoryrate)),
+  mean_resp_rate = mean(na.omit(respiratoryrate)),
+  #normal 12 - 16 
+  med_spo2 = median(na.omit(spo2)),
+  mean_spo2 = mean(na.omit(spo2)),
+  #normal > 95
+  med_bmi_per = median(na.omit(bmi_percentile)),
+  median(na.omit(d$lymphocytes_1000_per_uL)),
+  
+  median(na.omit(d$ALP_U_per_L)),
+  median(na.omit(d$LDH_U_per_L))
+  )
+
+# categories 
+# - comorbidites
+    
+# - vitals  
+# - labs
+
+
+first_enc_all <- d %>% 
+  mutate(servicedate = as.Date(d[,"servicedate"]), 
+         personid = as.factor(personid)) %>% 
+  arrange_at("servicedate") %>% 
+  distinct(personid, .keep_all = TRUE)
+
+
+
+
 
 
   
