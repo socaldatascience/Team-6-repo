@@ -1323,9 +1323,8 @@ first_encounter <- first_encounter %>%
   mutate(ord_spo2 = case_when(spo2 >=95~1,
                                   spo2<95 ~ 2,
                                    is.na(spo2)~0)) %>% 
-  mutate(ord_lymp = case_when((age_at_encounter<18 & lymphocytes_1000_per_uL >= 3000 & lymphocytes_1000_per_uL<=95000)|(age_at_encounter>=18 & lymphocytes_1000_per_uL >= 1000 & lymphocytes_1000_per_uL<=4800)~1,
-        (age_at_encounter  <18 & (lymphocytes_1000_per_uL <  3000|lymphocytes_1000_per_uL >  9500))|
-        (age_at_encounter  >=18 & (lymphocytes_1000_per_uL <  1000|lymphocytes_1000_per_uL >  4800))~2,
+  mutate(ord_lymp = case_when(lymphocytes_1000_per_uL>=1 & lymphocytes_1000_per_uL<=4.8~1,
+       lymphocytes_1000_per_uL < 1 | lymphocytes_1000_per_uL>4.8~2,
         is.na(lymphocytes_1000_per_uL)~0
                                   )) %>% 
   mutate(ord_ALP = case_when(ALP_U_per_L >=44 & ALP_U_per_L<= 147 ~1,
