@@ -1,0 +1,116 @@
+---
+title: "Modeling Comorb"
+author: "Team 6"
+date: '2022-07-15'
+output: html_document
+---
+
+```{r}
+setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
+
+load("cfCOVIDgroup6.RDATA")
+
+library(tidyverse)
+library(viridis)
+library(glmnet)
+library(gee)
+```
+
+
+```{r message = FALSE}
+attach(d)
+
+all_comorb <- d %>% 
+  select(encounterid, personid, servicedate, contains("comorb"),
+         COVIDseverity, age_at_encounter) %>% 
+  mutate(servicedate = as.Date(d[,"servicedate"]), 
+         COVIDseverity = as.ordered(case_when(COVIDseverity > 0 ~ 1,
+                                   COVIDseverity == 0 ~ 0)),
+         personid = as.factor(personid),
+         age_group = as.factor(case_when(age_at_encounter <= 11 ~ "0 - 11",
+                               age_at_encounter > 11 & 
+                                 age_at_encounter <= 17 ~ "12 - 17",
+                               age_at_encounter > 17 &
+                                 age_at_encounter < 21 ~ "18 - 20",
+                               age_at_encounter > 20 ~ "21 - 25")),
+         payer = as.factor(payer))
+
+first_enc <- all_comorb %>%
+  arrange_at("servicedate") %>%
+  distinct(personid, .keep_all = TRUE)
+
+table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter)
+
+cumsum(table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter))  
+```
+
+
+Shows total occurrence of each comorbidity in data set
+```{r warning = FALSE}
+totalco <- first_enc[,4:24] %>% 
+  mutate_if(is.factor, as.numeric) %>%
+  - 1 %>%
+  colSums()
+
+totalco
+```
+
+
+```{r}
+table(first_enc$payer)
+
+glm(COVIDseverity ~ payer, data = first_enc, family = "binomial") %>% 
+  summary()
+```
+
+
+```{r}
+glm(COVIDseverity ~., data = first_enc[,c(4:26, 28)], family = "binomial") %>% 
+  summary()
+```
+
+
+Logistic Regression now with grouped ages based on proportion. Each age group is
+roughly 25% of the sample. 
+```{r}
+train <-  sample(nrow(first_enc), size = floor(.75 * nrow(first_enc)))
+
+glm(COVIDseverity ~ ., 
+               data = first_enc[,c(4:25, 27:28)], family = "binomial") %>% 
+  summary()
+```
+
+
+With ages grouped by WHO standard
+```{r}
+all_comorb_WHO <- d %>% 
+  select(encounterid, personid, servicedate, contains("comorb"),
+         COVIDseverity, age_at_encounter) %>% 
+  mutate(servicedate = as.Date(d[,"servicedate"]), 
+         COVIDseverity = as.ordered(case_when(COVIDseverity > 0 ~ 1,
+                                   COVIDseverity == 0 ~ 0)),
+         personid = as.factor(personid),
+         age_group = as.factor(case_when(age_at_encounter <= 4 ~ "0 - 4",
+                               age_at_encounter > 4 & 
+                                 age_at_encounter < 10 ~ "5 - 9",
+                               age_at_encounter > 9 &
+                                 age_at_encounter < 15 ~ "10 - 14",
+                               age_at_encounter > 14 &
+                                 age_at_encounter < 20 ~ "15 - 19",
+                               age_at_encounter > 19 ~ "20 - 25")),
+         payer = as.factor(payer))
+
+first_enc_WHO <- all_comorb_WHO %>%
+  distinct(personid, .keep_all = TRUE)
+
+glm(COVIDseverity ~ ., 
+               data = first_enc_WHO[,c(4:25, 27:28)], family = "binomial") %>% 
+  summary()
+```
+
+
+```{r}
+
+```
+
+
