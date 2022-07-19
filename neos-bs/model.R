@@ -88,6 +88,19 @@ resp.clmm <- clmm2(location = COVIDseverity ~ comorb_resp_failure_J96  + TOCILIZ
       data =  choc.sub, Hess = TRUE)
 summary(resp.clmm)
 
+clm_train <- clmm2(location = COVIDseverity ~ as.factor(comorb_bronchiectasis_J47) + 
+        as.factor(comorb_resp_failure_J96) + 
+        as.factor(comorb_malnutrition), 
+        random = as.factor(personid),
+        data =  choc_train, Hess = TRUE)
+
+ clm_pred <-predict(clm_train, newdata = choc_test)
+
+ clm_pred_levels <- factor(if_else(clm_pred > 0.5, "2", "1", "0"), levels = c("0", "1", "2"))
+ 
+ cTab.3 <- table(choc_test$COVIDseverity, clm_pred)
+ 
+summary(clm_train)
 ### Determining Important Variables ###
 var.comorb_all <- regsubsets(COVIDseverity ~ comorb_copd_J40_J44 + comorb_nasal_polyps_J33 + 
              comorb_pneumothorax_J93 + comorb_resp_failure_J96 + 
@@ -102,6 +115,9 @@ var.comorb_all <- regsubsets(COVIDseverity ~ comorb_copd_J40_J44 + comorb_nasal_
              comorb_chronic_kidney_disease_N18 + comorb_lung_transplant_Z942,
            data = choc.sub, method = "backward")
 summary(var.comorb_all)
+
+
+
 ### top comorbs ###
 
 
