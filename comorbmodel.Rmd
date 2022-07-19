@@ -73,7 +73,6 @@ glm(COVIDseverity ~., data = first_enc[,c(4:26, 28)], family = "binomial") %>%
 Logistic Regression now with grouped ages based on proportion. Each age group is
 roughly 25% of the sample. 
 ```{r}
-train <-  sample(nrow(first_enc), size = floor(.75 * nrow(first_enc)))
 
 glm(COVIDseverity ~ ., 
                data = first_enc[,c(4:25, 27:28)], family = "binomial") %>% 
@@ -110,6 +109,43 @@ glm(COVIDseverity ~ .,
 
 
 ```{r}
+
+
+olr_df <- d %>% 
+  select(contains("comorb"),
+         COVIDseverity, age_at_encounter) %>% 
+  mutate(servicedate = as.Date(d[,"servicedate"]),
+         personid = as.factor(personid),
+         age_group = as.factor(case_when(age_at_encounter <= 11 ~ "0 - 11",
+                               age_at_encounter > 11 & 
+                                 age_at_encounter <= 17 ~ "12 - 17",
+                               age_at_encounter > 17 &
+                                 age_at_encounter < 21 ~ "18 - 20",
+                               age_at_encounter > 20 ~ "21 - 25")),
+         payer = as.factor(payer)) %>% 
+  arrange_at("servicedate") %>%
+  distinct(personid, .keep_all = TRUE)
+
+library(MASS)
+
+train <-  sample(nrow(olr_df), size = floor(.90 * nrow(olr_df)))
+
+dtrain <- olr_df[train,]
+test <- olr_df[-train,]
+
+olr_fit <- polr(COVIDseverity ~ comorb_bronchiectasis_J47 +
+                comorb_resp_failure_J96 + comorb_malnutrition + 
+                comorb_other_GI_notLiver_K_excludesK70K77 +
+                comorb_chronic_kidney_disease_N18 +
+                comorb_nicotine_dependence_F17 + 
+                comorb_heart_failure_I50, data = dtrain,
+              Hess = TRUE)
+
+test <- olr_df[-train,]
+glm_probs = predict(olr_fit, test)
+
+table(test$COVIDseverity, glm_probs)
+mean(as.character(olr_df[-train,]$COVIDseverity) != as.character(COVIDseverity))
 
 ```
 

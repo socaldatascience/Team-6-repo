@@ -177,7 +177,7 @@ first_enc_all <- d %>%
          personid = as.factor(personid)) %>% 
   arrange_at("servicedate") %>% 
   distinct(personid, .keep_all = TRUE)
-
+ 
 
 
 
