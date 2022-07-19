@@ -1342,3 +1342,14 @@ first_encounter <- first_encounter %>%
 
 ```
 
+
+**FINAL BASE MODEL**  
+```{r}
+base.glm <- glm(as.factor(bin_COVIDseverity)~ as.factor(comorb_bronchiectasis_J47)
+                +as.factor(comorb_malnutrition) + as.factor(comorb_other_GI_notLiver_K_excludesK70K77)
+                +as.factor(comorb_chronic_kidney_disease_N18) + as.factor(comorb_resp_failure_J96)
+                +as.factor(ord_resp.rate) + as.factor(ord_spo2)+ as.factor(ord_lymp)
+                +as.factor(ord_ALP)+ as.factor(ord_ALT) + as.factor(ord_LDH), data = first_encounter, family = binomial(link = "logit"))
+summary(base.glm)
+```
+

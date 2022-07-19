@@ -9,7 +9,9 @@ library(Hmisc)
 library(reshape2)
 library(foreign)
 library(ordinal)
+library(geepack)
 
+load("C:/Users/neoda/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2/cfCOVIDgroup6.RDATA")
 
 glimpse(d)
 choc.sub <- d %>%
@@ -20,12 +22,6 @@ choc.sub <- d %>%
          spo2, bmi_percentile, bmi_ratio, systolicBP, diastolicBP,
          bilirubin_total_mg_per_dl, crp_mg_dl, leukocytes_1000_per_uL,
          lymphocytes_1000_per_uL, hemoglobin_g_per_dL, platelets_1000_per_uL,
-         ALP_U_per_L, ALT_U_per_L, AST_U_per_L, LDH_U_per_L, ferritin_ng_per_mL )
-
-rownames(choc.sub) <- seq(1, nrow(choc.sub))
-
-polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + spo2 +
-
          ALP_U_per_L, ALT_U_per_L, AST_U_per_L, LDH_U_per_L, ferritin_ng_per_mL, 
          servicedate)
 
@@ -146,3 +142,45 @@ var.nutr <- regsubsets(COVIDseverity ~ comorb_obesity_overweight_E66 +
            method = "backward")
 summary(var.nutr)
 
+### BOOTSTRAP ###
+
+
+
+d %>% 
+  summarise(
+    
+  med_heart_rate = median(na.omit(heartrate)),
+  mean_heart_rate = mean(na.omit(heartrate)),
+  #average hr 60 - 100
+  med_resp_rate = median(na.omit(respiratoryrate)),
+  mean_resp_rate = mean(na.omit(respiratoryrate)),
+  #normal 12 - 16 
+  med_spo2 = median(na.omit(spo2)),
+  mean_spo2 = mean(na.omit(spo2)),
+  #normal > 95
+  med_bmi_per = median(na.omit(bmi_percentile)),
+  median(na.omit(d$lymphocytes_1000_per_uL)),
+  
+  median(na.omit(d$ALP_U_per_L)),
+  median(na.omit(d$LDH_U_per_L))
+  )
+
+# categories 
+# - comorbidites
+    
+# - vitals  
+# - labs
+
+
+first_enc_all <- d %>% 
+  mutate(servicedate = as.Date(d[,"servicedate"]), 
+         personid = as.factor(personid)) %>% 
+  arrange_at("servicedate") %>% 
+  distinct(personid, .keep_all = TRUE)
+ 
+
+
+
+
+
+  
