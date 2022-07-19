@@ -1209,9 +1209,110 @@ summary(glm.reduced)
 clm.mod2 <-  clmm2(location = COVIDseverity ~ care_time + age_at_encounter + 
     as.factor(comorb_bronchiectasis_J47) + as.factor(comorb_resp_failure_J96) + 
     INOTROPES + DEXAMETHASONE + ENOXAPARIN + HEPARIN + METHYLPREDNISOLONE + 
-    ASPIRIN "", 
+    ASPIRIN , 
     random = as.factor(personid), data = choc_by_visit, Hess = TRUE)
 summary(clm.mod2)
 ```
 
+
+```{r}
+choc_by_visit <- choc_by_visit %>% 
+  mutate(bmi_level = case_when(bmi_percentile < 5 ~ "Low",
+                               bmi_percentile>=5 & bmi_percentile<85~"Normal",
+                               bmi_percentile>=85~"High",
+                               TRUE~"Unkown")) %>% 
+  mutate(heart_rate_lev = case_when((age_at_encounter <=0 & heartrate<80)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & heartrate<80)|
+                                    ((age_at_encounter ==3 | age_at_encounter==4) & heartrate<80)|
+                                    ((age_at_encounter ==5 | age_at_encounter==6) & heartrate<75)|
+                                    (age_at_encounter >=7 & age_at_encounter<=9 & heartrate<70)|
+                                     ( age_at_encounter >=10 & heartrate<60)~ "Low",
+                                    (age_at_encounter <=0 & heartrate>=80 & heartrate <=160)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & heartrate>=80 & heartrate<=130 )|
+                                    ((age_at_encounter ==3 | age_at_encounter==4) & heartrate>=80 & heartrate <=120)|
+                                    ((age_at_encounter ==5 | age_at_encounter==6) & heartrate>=75 & heartrate<=115)|
+                                    (age_at_encounter >=7 & age_at_encounter<=9 & heartrate>=70   & heartrate<=110)|
+                                     ( age_at_encounter >=10 & heartrate>=60 & heartrate<=100)~ "Normal",
+                                    (age_at_encounter <=0 & heartrate >=60 & heartrate <=100)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & heartrate>130)|
+                                    ((age_at_encounter ==3 | age_at_encounter==4) & heartrate>120)|
+                                    ((age_at_encounter ==5 | age_at_encounter==6) & heartrate>115)|
+                                    (age_at_encounter >=7 & age_at_encounter<=9 & heartrate>110)|
+                                     ( age_at_encounter >=10 & heartrate>100)~ "High",
+                                    TRUE~"Unkown")) %>% 
+  mutate(resp_rate_lev = case_when((age_at_encounter <=0 & respiratoryrate<30)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & respiratoryrate<24)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & respiratoryrate<22)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & respiratoryrate<18)|
+                                    (age_at_encounter >=13 & respiratoryrate<12)~ "Low",
+                                    (age_at_encounter <=0 & respiratoryrate>= 30 & respiratoryrate<=60)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & respiratoryrate>=24 & respiratoryrate<=40)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & respiratoryrate>=22 & respiratoryrate<=34)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & respiratoryrate>=18 & respiratoryrate<=30)|
+                                    (age_at_encounter >=13 & respiratoryrate>=12 & respiratoryrate<=16)~ "Normal",
+                                    (age_at_encounter <=0 &  respiratoryrate>60)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) &  respiratoryrate>40)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & respiratoryrate>34)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & respiratoryrate > 30)|
+                                    (age_at_encounter >=13 & respiratoryrate>16)~ "High",
+                                   TRUE~"Unkown")) %>% 
+  mutate(temp_levC = case_when((age_at_encounter<=1 & admit_tempC <36.7)|
+                                 (age_at_encounter>1 & age_at_encounter <18 & admit_tempC < 36.4)|
+                                 (age_at_encounter >=18 & admit_tempC<35.6)~"Low",
+                               (age_at_encounter<=1 & admit_tempC >=36.7 & admit_tempC <=37.3)|
+                                 (age_at_encounter>1 & age_at_encounter <18 & admit_tempC >= 36.4 &admit_tempC <=37.4)|
+                                 (age_at_encounter >=18 & admit_tempC>=35.6 & admit_tempC <=36.7)~"Normal",
+                               (age_at_encounter<=1 &  admit_tempC >37.3)|
+                                 (age_at_encounter>1 & age_at_encounter <18 & admit_tempC >37.4)|
+                                 (age_at_encounter >=18  & admit_tempC >36.7)~"High",
+                               TRUE~"Unkown"
+                               )) %>% 
+  mutate(sysBP_lev = case_when((age_at_encounter <=0 & systolicBP<87)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & systolicBP<95)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & systolicBP<95)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & systolicBP<97)|
+                                    (age_at_encounter >=13 & systolicBP<112)~ "Low",
+                               (age_at_encounter <=0 & systolicBP>=87 & systolicBP<=105)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & systolicBP>=95 &systolicBP<=105)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & systolicBP>=95 & systolicBP<=110)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & systolicBP>=97 & systolicBP<=112)|
+                                    (age_at_encounter >=13 & systolicBP>=112 & systolicBP<=128)~ "Normal",
+                               (age_at_encounter <=0 &  systolicBP>105)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & systolicBP>105)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & systolicBP>110)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & systolicBP>112)|
+                                    (age_at_encounter >=13 & systolicBP>128)~ "High",
+                               TRUE~"Unkown"
+                               )) %>% 
+  mutate(diaBP_lev = case_when((age_at_encounter <=0 & diastolicBP<53)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & diastolicBP<53)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & diastolicBP<56)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & diastolicBP<57)|
+                                    (age_at_encounter >=13 & diastolicBP<66)~ "Low",
+                               (age_at_encounter <=0 & diastolicBP>=53 & diastolicBP<=66)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & diastolicBP>=53 & diastolicBP<=66)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & diastolicBP>=56 & diastolicBP<=70)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & diastolicBP>=57 & diastolicBP<=71)|
+                                    (age_at_encounter >=13 & diastolicBP>=66 & diastolicBP<=80)~ "Normal",
+                               (age_at_encounter <=0 &  diastolicBP>66)|
+                                    ((age_at_encounter ==1 | age_at_encounter==2) & diastolicBP>66)|
+                                    (age_at_encounter >=3 & age_at_encounter<=5 & diastolicBP>70)|
+                                    (age_at_encounter >=6 & age_at_encounter<=12 & diastolicBP>71)|
+                                    (age_at_encounter >=13 & diastolicBP>80)~ "High",
+                               TRUE~"Unkown")) %>% 
+  mutate(ox_sat_lev = case_when(spo2<90~"<90", spo2>=90 & spo2<=94 ~ "90-94", spo2>=95~ "95-100",TRUE~"Unkown"))
+  first_encounter <- choc_by_visit %>% 
+  filter(visit ==1) %>% 
+  mutate(age_group = case_when(age_at_encounter>=12 & age_at_encounter<=17 ~ "12-17",
+                               age_at_encounter<=20 & age_at_encounter>=18 ~"18-20",
+                               age_at_encounter<=25 &age_at_encounter>=21~"21-25",
+                               age_at_encounter <=11~"11 and below"))
+  
+
+choc_by_visit <- choc_by_visit %>% 
+  mutate(age_group = case_when(age_at_encounter>=12 & age_at_encounter<=17 ~ "12-17",
+                               age_at_encounter<=20 & age_at_encounter>=18 ~"18-20",
+                               age_at_encounter<=25 &age_at_encounter>=21~"21-25",
+                               age_at_encounter <=11~"11 and below"))
+```
 
