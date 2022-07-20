@@ -42,6 +42,13 @@ first_enc <- all_comorb %>%
 table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter)
 
 cumsum(table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter))  
+
+first_enc_all <- d %>% 
+   mutate(servicedate = as.Date(d[,"servicedate"]), 
+          personid = as.factor(personid)) %>% 
+  arrange_at("servicedate") %>% 
+  distinct(personid, .keep_all = TRUE)
+          
 ```
 
 
@@ -108,6 +115,35 @@ glm(COVIDseverity ~ .,
 ```
 
 
+LASSO ?!!!?!!!
+```{r}
+set.seed(622)
+x <-  model.matrix(COVIDseverity ~., first_enc[,c(4:28)])[, -1]
+y <-  first_enc$COVIDseverity
+
+grid <- 10^seq(10, -2, length = 100)
+
+train <-  sample(nrow(x), size = floor(.8 * nrow(x)))
+test <-  (-train)
+y_test <-  y[test]
+
+lasso_mod <-  glmnet(x[train, ], y[train], alpha = 1,
+                     lambda = grid, family = "binomial")
+
+cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1, family = "binomial")
+
+best_lam <-  cv_out$lambda.min
+
+lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
+
+out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
+
+lasso_coef = predict(out, type = "coefficients",
+                         s = best_lam)[1:27, ]
+
+lasso_coef[lasso_coef != 0]
+```
+
 ```{r}
 
 
@@ -128,7 +164,7 @@ olr_df <- d %>%
 
 library(MASS)
 
-train <-  sample(nrow(olr_df), size = floor(.90 * nrow(olr_df)))
+train <-  sample(nrow(olr_df), size = floor(.80 * nrow(olr_df)))
 
 dtrain <- olr_df[train,]
 test <- olr_df[-train,]
@@ -141,12 +177,131 @@ olr_fit <- polr(COVIDseverity ~ comorb_bronchiectasis_J47 +
                 comorb_heart_failure_I50, data = dtrain,
               Hess = TRUE)
 
-test <- olr_df[-train,]
+
 glm_probs = predict(olr_fit, test)
 
 table(test$COVIDseverity, glm_probs)
 mean(as.character(olr_df[-train,]$COVIDseverity) != as.character(COVIDseverity))
 
 ```
+
+```{r}
+payer_olr <- polr(COVIDseverity ~ payer, data = dtrain, Hess = TRUE)
+
+payer_probs = predict(payer_olr, test)
+
+table(test$COVIDseverity, payer_probs)
+mean(as.character(olr_df[-train,]$COVIDseverity) != as.character(COVIDseverity))
+
+
+```
+
+```{r}
+
+first_enc_labs <- d %>%
+  mutate(servicedate = as.Date(d[,"servicedate"]),
+         personid = as.factor(personid),
+         age_group = as.factor(case_when(age_at_encounter <= 11 ~ "0 - 11",
+                               age_at_encounter > 11 & 
+                                 age_at_encounter <= 17 ~ "12 - 17",
+                               age_at_encounter > 17 &
+                                 age_at_encounter < 21 ~ "18 - 20",
+                               age_at_encounter > 20 ~ "21 - 25")),
+         payer = as.factor(payer)) %>% 
+  arrange_at("servicedate") %>%
+  distinct(personid, .keep_all = TRUE) %>% 
+  mutate(resp_rate_lev = as.factor(case_when((age_at_encounter <= 0 & 
+                                      respiratoryrate < 30)|
+                                    ((age_at_encounter == 1 | 
+                                        age_at_encounter== 2) & 
+                                       respiratoryrate < 24)|
+                                    (age_at_encounter >= 3 & 
+                                       age_at_encounter <= 5 & 
+                                       respiratoryrate < 22)|
+                                    (age_at_encounter >= 6 &
+                                       age_at_encounter <= 12 &
+                                       respiratoryrate < 18)|
+                                    (age_at_encounter >= 13 &
+                                       respiratoryrate < 12) ~ "Low",
+                                    (age_at_encounter <= 0 & 
+                                       respiratoryrate >= 30 &
+                                       respiratoryrate <= 60)|
+                                    ((age_at_encounter == 1 | 
+                                        age_at_encounter == 2) &
+                                       respiratoryrate >= 24 &
+                                       respiratoryrate <= 40)|
+                                    (age_at_encounter >= 3 &
+                                       age_at_encounter <= 5 &
+                                       respiratoryrate >= 22 &
+                                       respiratoryrate <= 34)|
+                                    (age_at_encounter >= 6 &
+                                       age_at_encounter <= 12 &
+                                       respiratoryrate >= 18 &
+                                       respiratoryrate <= 30)|
+                                    (age_at_encounter >= 13 &
+                                       respiratoryrate >= 12 &
+                                       respiratoryrate <= 16) ~ "Normal",
+                                    (age_at_encounter <= 0 &
+                                       respiratoryrate > 60)|
+                                    ((age_at_encounter == 1 |
+                                        age_at_encounter == 2) &
+                                       respiratoryrate > 40)|
+                                    (age_at_encounter >= 3 &
+                                       age_at_encounter <= 5 &
+                                       respiratoryrate > 34)|
+                                    (age_at_encounter >= 6 &
+                                       age_at_encounter <= 12 &
+                                       respiratoryrate > 30)|
+                                    (age_at_encounter >= 13 &
+                                       respiratoryrate > 16) ~ "High")),
+  ord_spo2 = as.factor(case_when(spo2 >= 95 ~ 1,
+                       spo2 < 95 ~ 2,
+                       is.na(spo2) ~ 0)),
+  ord_lymp = as.factor(case_when(lymphocytes_1000_per_uL >= 1 &
+                       lymphocytes_1000_per_uL <= 4.8 ~ 1,
+                       lymphocytes_1000_per_uL < 1 |                                                     lymphocytes_1000_per_uL > 4.8 ~ 2,
+                       is.na(lymphocytes_1000_per_uL) ~ 0)), 
+  ord_ALP = as.factor(case_when(ALP_U_per_L >= 44 &
+                      ALP_U_per_L <= 147 ~ 1,
+                      ALP_U_per_L < 44 | ALP_U_per_L > 147 ~ 2,
+                      is.na(ALP_U_per_L) ~ 0)), 
+  ord_ALT = as.factor(case_when(ALT_U_per_L >= 10 & ALT_U_per_L <= 40 ~ 1,
+                      ALT_U_per_L < 10 | ALT_U_per_L > 40 ~ 2,
+                      is.na(ALT_U_per_L) ~ 0)),
+  ord_LDH = as.factor(case_when((age_at_encounter < 18 & LDH_U_per_L >= 160 &
+                         LDH_U_per_L <= 450)|(age_at_encounter >= 18 &
+                                                LDH_U_per_L >= 140 &
+                                                LDH_U_per_L <= 280) ~ 1, 
+                         (age_at_encounter  < 18 & (LDH_U_per_L <  260 | 
+                                                      LDH_U_per_L >  450)) | 
+                           (age_at_encounter  >= 18 & (LDH_U_per_L <  140 | 
+                                                         LDH_U_per_L >  280)) ~
+                           2, 
+                         is.na(LDH_U_per_L) ~ 0)))
+```
+
+
+```{r}
+train_2 <-  sample(nrow(first_enc_labs), size = floor(.80 * 
+                                                        nrow(first_enc_labs)))
+
+train_final <- first_enc_labs[train_2,]
+test_final <- first_enc_labs[-train_2,]
+
+final_fit <- polr(COVIDseverity ~ comorb_bronchiectasis_J47 +
+                comorb_resp_failure_J96 + comorb_malnutrition  + ord_spo2 + 
+                  ord_lymp + ord_LDH + resp_rate_lev + ord_ALP + ord_ALT + 
+                  comorb_chronic_kidney_disease_N18 + 
+                  comorb_nicotine_dependence_F17 +
+                  comorb_other_GI_notLiver_K_excludesK70K77,
+                data = train_final, Hess = TRUE)
+
+
+final_probs = predict(final_fit, test_final)
+
+table(test_final$COVIDseverity, final_probs)
+mean(as.character(test_final$COVIDseverity) != as.character(COVIDseverity))
+```
+
 
 
