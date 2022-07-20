@@ -143,7 +143,18 @@ first_encounter_all_labs <- first_encounter %>%
               
               is.na(bmi_ratio) ~ 0)))
 
+total_comorb_df <- dplyr::select(d, contains("comorb")) %>% 
+  mutate_if(is.factor, as.numeric) %>% 
+  - 1
 
+total_comorb_df <- total_comorb_df %>% 
+  mutate(total_comorb_by_patient = c(rowSums(total_comorb_df)), 
+         encounterid = d[,"encounterid"]) %>% 
+  dplyr::select("encounterid", "total_comorb_by_patient")
+
+
+first_encounter_all_labs <- first_encounter_all_labs %>%
+  left_join(total_comorb_df, by = "encounterid")
 ###
 
 polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + comorb_bronchiectasis_J47 + 
@@ -151,7 +162,7 @@ polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + comorb_bronchiectasis_J
        age_group + leuk_leves + crp_levels + bilirubin_levels + ord_LDH + ord_ALT +
        ord_ALP + ord_lymp + ord_spo2 + ord_resp.rate ,
        data = first_encounter_all_labs, Hess = T)
-
+#################### FOR LIZ ########################
 e <- seq(1, 4662)
 f <- sample(e, 4195, replace = F)
 
@@ -161,14 +172,17 @@ enc_labs.test  <- first_encounter_all_labs[-f,]
 vital.ord <- polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + comorb_bronchiectasis_J47 + 
        comorb_pneumothorax_J93 + comorb_malnutrition + comorb_liver_disease_K70_K77 + 
        age_group + leuk_leves + crp_levels + bilirubin_levels + ord_LDH + ord_ALT +
-       ord_ALP + ord_lymp + ord_spo2 + ord_resp.rate + gender + bmi_ratio_levels, 
+       ord_ALP + ord_lymp + ord_spo2 + ord_resp.rate + gender + bmi_ratio_levels + 
+       total_comorb_by_patient, 
        data = enc_labs.train, Hess = T)
+
+summary(first_encounter_all_labs$COVIDseverity)
 
 vital.ord_pred <- predict(vital.ord, newdata =enc_labs.test)
 
 table(enc_labs.test$COVIDseverity, vital.ord_pred)
 
-###
+######### ABOVE FOR LIZ ########################
 
 rownames(choc.sub) <- seq(1, nrow(choc.sub))
 
