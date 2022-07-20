@@ -126,11 +126,47 @@ first_encounter_all_labs <- first_encounter %>%
               
               crp_mg_dl > 0.9 ~ 2,
               
-              is.na(crp_mg_dl) ~ 0))
-  )
+              is.na(crp_mg_dl) ~ 0)),
+    
+    leuk_leves = as.factor(case_when(leukocytes_1000_per_uL >= 4.5 &
+              leukocytes_1000_per_uL <= 11 ~ 1,
+              
+              leukocytes_1000_per_uL < 4.5|
+              leukocytes_1000_per_uL > 11 ~ 2,
+              
+              is.na(leukocytes_1000_per_uL) ~ 0)),
+    bmi_ratio_levels = as.factor(case_when(bmi_ratio >= 18.5 &
+              bmi_ratio <= 24.9 ~ 1,
+              
+              bmi_ratio < 18.4|
+              bmi_ratio > 24.9 ~ 2,
+              
+              is.na(bmi_ratio) ~ 0)))
 
 
+###
 
+polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + comorb_bronchiectasis_J47 + 
+       comorb_pneumothorax_J93 + comorb_malnutrition + comorb_liver_disease_K70_K77 + 
+       age_group + leuk_leves + crp_levels + bilirubin_levels + ord_LDH + ord_ALT +
+       ord_ALP + ord_lymp + ord_spo2 + ord_resp.rate ,
+       data = first_encounter_all_labs, Hess = T)
+
+e <- seq(1, 4662)
+f <- sample(e, 4195, replace = F)
+
+enc_labs.train <- first_encounter_all_labs[f,]
+enc_labs.test  <- first_encounter_all_labs[-f,] 
+
+vital.ord <- polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + comorb_bronchiectasis_J47 + 
+       comorb_pneumothorax_J93 + comorb_malnutrition + comorb_liver_disease_K70_K77 + 
+       age_group + leuk_leves + crp_levels + bilirubin_levels + ord_LDH + ord_ALT +
+       ord_ALP + ord_lymp + ord_spo2 + ord_resp.rate + gender + bmi_ratio_levels, 
+       data = enc_labs.train, Hess = T)
+
+vital.ord_pred <- predict(vital.ord, newdata =enc_labs.test)
+
+table(enc_labs.test$COVIDseverity, vital.ord_pred)
 
 ###
 
@@ -295,13 +331,13 @@ polr(formula = COVIDseverity ~ age_at_encounter + comorb_bronchiectasis_J47 +
 e <- seq(1, 4662)
 f <- sample(e, 4195, replace = F)
 
-enc_labs.train <- first_enc_labs[f,]
-enc_labs.test  <- first_enc_labs[-f,] 
+enc_labs.train <- first_encounter[f,]
+enc_labs.test  <- first_encounter[-f,] 
 
 mod1 <- polr(formula = COVIDseverity ~ age_at_encounter + comorb_bronchiectasis_J47*ord_resp.rate + 
                comorb_resp_failure_J96 +  comorb_malnutrition* + comorb_other_GI_notLiver_K_excludesK70K77 +
                comorb_chronic_kidney_disease_N18 + ord_spo2*ord_resp.rate + ord_lymp + ord_ALP + ord_ALT + 
-               ord_LDH + ord_resp.rate, data = first_enc_labs, Hess = T)
+               ord_LDH + ord_resp.rate, data = first_encounter, Hess = T)
 
 mod_pred <- predict(mod1, newdata = enc_labs.test)
 
