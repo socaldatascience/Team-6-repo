@@ -25,6 +25,115 @@ choc.sub <- d %>%
          ALP_U_per_L, ALT_U_per_L, AST_U_per_L, LDH_U_per_L, ferritin_ng_per_mL, 
          servicedate)
 
+
+### Categorization ###
+first_encounter <- d %>%
+  mutate(servicedate = as.Date(d[,"servicedate"]),
+         personid = as.factor(personid),
+         age_group = as.factor(case_when(age_at_encounter <= 11 ~ "0 - 11",
+                                         age_at_encounter > 11 & 
+                                           age_at_encounter <= 17 ~ "12 - 17",
+                                         age_at_encounter > 17 &
+                                           age_at_encounter < 21 ~ "18 - 20",
+                                         age_at_encounter > 20 ~ "21 - 25")),
+         payer = as.factor(payer)) %>% 
+  arrange_at("servicedate") %>%
+  distinct(personid, .keep_all = TRUE) %>% 
+  mutate(resp_rate_lev = as.factor(case_when((age_at_encounter <= 0 & 
+                                                respiratoryrate < 30)|
+                                               ((age_at_encounter == 1 | 
+                                                   age_at_encounter== 2) & 
+                                                  respiratoryrate < 24)|
+                                               (age_at_encounter >= 3 & 
+                                                  age_at_encounter <= 5 & 
+                                                  respiratoryrate < 22)|
+                                               (age_at_encounter >= 6 &
+                                                  age_at_encounter <= 12 &
+                                                  respiratoryrate < 18)|
+                                               (age_at_encounter >= 13 &
+                                                  respiratoryrate < 12) ~ "Low",
+                                             (age_at_encounter <= 0 & 
+                                                respiratoryrate >= 30 &
+                                                respiratoryrate <= 60)|
+                                               ((age_at_encounter == 1 | 
+                                                   age_at_encounter == 2) &
+                                                  respiratoryrate >= 24 &
+                                                  respiratoryrate <= 40)|
+                                               (age_at_encounter >= 3 &
+                                                  age_at_encounter <= 5 &
+                                                  respiratoryrate >= 22 &
+                                                  respiratoryrate <= 34)|
+                                               (age_at_encounter >= 6 &
+                                                  age_at_encounter <= 12 &
+                                                  respiratoryrate >= 18 &
+                                                  respiratoryrate <= 30)|
+                                               (age_at_encounter >= 13 &
+                                                  respiratoryrate >= 12 &
+                                                  respiratoryrate <= 16) ~ "Normal",
+                                             (age_at_encounter <= 0 &
+                                                respiratoryrate > 60)|
+                                               ((age_at_encounter == 1 |
+                                                   age_at_encounter == 2) &
+                                                  respiratoryrate > 40)|
+                                               (age_at_encounter >= 3 &
+                                                  age_at_encounter <= 5 &
+                                                  respiratoryrate > 34)|
+                                               (age_at_encounter >= 6 &
+                                                  age_at_encounter <= 12 &
+                                                  respiratoryrate > 30)|
+                                               (age_at_encounter >= 13 &
+                                                  respiratoryrate > 16) ~ "High")),
+         ord_resp.rate = case_when(resp_rate_lev =="Normal"~1,
+                                   resp_rate_lev == "Low"| resp_rate_lev == "High"~ 2,
+                                   is.na(respiratoryrate) & resp_rate_lev == "Unknown"~0),
+         ord_spo2 = as.factor(case_when(spo2 >= 95 ~ 1,
+                                        spo2 < 95 ~ 2,
+                                        is.na(spo2) ~ 0)),
+         ord_lymp = as.factor(case_when(lymphocytes_1000_per_uL >= 1 &
+                                          lymphocytes_1000_per_uL <= 4.8 ~ 1,
+                                        lymphocytes_1000_per_uL < 1 |                                                     
+                                          lymphocytes_1000_per_uL > 4.8 ~ 2,
+                                        is.na(lymphocytes_1000_per_uL) ~ 0)), 
+         ord_ALP = as.factor(case_when(ALP_U_per_L >= 44 &
+                                         ALP_U_per_L <= 147 ~ 1,
+                                       ALP_U_per_L < 44 | ALP_U_per_L > 147 ~ 2,
+                                       is.na(ALP_U_per_L) ~ 0)), 
+         ord_ALT = as.factor(case_when(ALT_U_per_L >= 10 & ALT_U_per_L <= 40 ~ 1,
+                                       ALT_U_per_L < 10 | ALT_U_per_L > 40 ~ 2,
+                                       is.na(ALT_U_per_L) ~ 0)),
+         ord_LDH = as.factor(case_when((age_at_encounter < 18 & LDH_U_per_L >= 160 &
+                                          LDH_U_per_L <= 450)|(age_at_encounter >= 18 &
+                                                                 LDH_U_per_L >= 140 &
+                                                                 LDH_U_per_L <= 280) ~ 1, 
+                                       (age_at_encounter  < 18 & (LDH_U_per_L <  260 | 
+                                                                    LDH_U_per_L >  450)) | 
+                                         (age_at_encounter  >= 18 & (LDH_U_per_L <  140 | 
+                                                                       LDH_U_per_L >  280)) ~
+                                         2, 
+                                       is.na(LDH_U_per_L) ~ 0)))
+
+first_encounter_all_labs <- first_encounter %>%  
+  mutate(
+    bilirubin_levels = as.factor(case_when(bilirubin_total_mg_per_dl >= 0.1 &
+              bilirubin_total_mg_per_dl <= 1.2 ~ 1, 
+              
+              bilirubin_total_mg_per_dl < 0.1|
+              bilirubin_total_mg_per_dl > 1.2 ~ 2,
+              
+              is.na(bilirubin_total_mg_per_dl) ~ 0)), 
+    
+    crp_levels = as.factor(case_when(crp_mg_dl < 0.9 ~ 1,
+              
+              crp_mg_dl > 0.9 ~ 2,
+              
+              is.na(crp_mg_dl) ~ 0))
+  )
+
+
+
+
+###
+
 rownames(choc.sub) <- seq(1, nrow(choc.sub))
 
 resp.olm <- polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + spo2 +
@@ -65,7 +174,7 @@ glimpse(choc_frst_ecntr)
 dim(choc_frst_ecntr)
 
 c <- seq(1, 4662)
-d <- sample(c, 4195, replace = F)
+#d <- sample(c, 4195, replace = F)
 
 choc_frst_ectr.train <- choc_frst_ecntr[d,]
 choc_frst_ectr.test  <- choc_frst_ecntr[-d,] 
@@ -177,10 +286,51 @@ first_enc_all <- d %>%
          personid = as.factor(personid)) %>% 
   arrange_at("servicedate") %>% 
   distinct(personid, .keep_all = TRUE)
- 
 
+polr(formula = COVIDseverity ~ age_at_encounter + comorb_bronchiectasis_J47 + 
+       comorb_resp_failure_J96 +  comorb_malnutrition + comorb_other_GI_notLiver_K_excludesK70K77 +
+       comorb_chronic_kidney_disease_N18 + ord_spo2*ord_resp.rate + ord_lymp + ord_ALP + ord_ALT + 
+       ord_LDH, data = first_enc_labs, Hess = T)
 
+e <- seq(1, 4662)
+f <- sample(e, 4195, replace = F)
 
+enc_labs.train <- first_enc_labs[f,]
+enc_labs.test  <- first_enc_labs[-f,] 
 
+mod1 <- polr(formula = COVIDseverity ~ age_at_encounter + comorb_bronchiectasis_J47*ord_resp.rate + 
+               comorb_resp_failure_J96 +  comorb_malnutrition* + comorb_other_GI_notLiver_K_excludesK70K77 +
+               comorb_chronic_kidney_disease_N18 + ord_spo2*ord_resp.rate + ord_lymp + ord_ALP + ord_ALT + 
+               ord_LDH + ord_resp.rate, data = first_enc_labs, Hess = T)
 
-  
+mod_pred <- predict(mod1, newdata = enc_labs.test)
+
+# mod_pred_levels <- factor(if_else(mod_pred > 0.5, "2", "1", "0"), levels = c("0", "1", "2"))
+
+cTab.3 <- table(enc_labs.test$COVIDseverity, mod_pred)
+(CCR3 <- sum(diag(cTab.3))/sum(cTab.3))
+
+# first_enc_labs <- first_enc_labs %>% 
+#   mutate(bin_COVIDseverity = as.factor(case_when(COVIDseverity == 0~0,
+#                                                  
+#                                        COVIDseverity == 1 |
+#                                        COVIDseverity ==2~1)))
+# first_enc_labs <- first_enc_labs %>% 
+#   mutate(
+#     bin_COVIDseverity = as.character(bin_COVIDseverity)
+#   )
+# 
+# first_enc_labs <-first_enc_labs %>% 
+#   mutate(
+#     bin_COVIDseverity = as.factor(bin_COVIDseverity)
+#   )
+# 
+# first.mod1 <- glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47
+#                   +comorb_malnutrition + comorb_other_GI_notLiver_K_excludesK70K77
+#                   +comorb_chronic_kidney_disease_N18 + comorb_resp_failure_J96
+#                   +ord_resp.rate + ord_spo2+ ord_lymp
+#                   +ord_ALP+ ord_ALT + ord_LDH + ord_resp.rate*comorb_resp_failure_J96 + ord_spo2*ord_resp.rate, data = enc_labs.train, family = binomial(link = "logit"))
+# 
+# first.mod_pred <- predict(first.mod1, newdata = enc_labs.test)
+# 
+# table(enc_labs.test$COVIDseverity, first.mod_pred)
