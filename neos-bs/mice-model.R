@@ -11,7 +11,8 @@ library(foreign)
 library(ordinal)
 library(geepack)
 library(mice)
-
+library(ROCit)
+library(pROC)
 load("C:/Users/neoda/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2/cfCOVIDgroup6.RDATA")
 
 choc <- d %>% 
@@ -119,18 +120,37 @@ glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_malnutrition +
       comorb_resp_failure_J96*comorb_malnutrition, data = choc.full, 
     family = binomial(link = "logit"))
 
-mod.train <- choc.full[f,]
-mod.test <- choc.full[-f,]
+mod.train2 <- choc.full[f,]
+mod.test2 <- choc.full[-f,]
 
 fill.glm <- glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_malnutrition +
                   comorb_other_GI_notLiver_K_excludesK70K77 +
                   comorb_chronic_kidney_disease_N18 + comorb_resp_failure_J96 +
                   resp_rate + age_group + comorb_hypertensive_heart_disease_I11 + 
-                  comorb_resp_failure_J96*comorb_malnutrition, data = mod.train, 
+                  comorb_resp_failure_J96*comorb_malnutrition, data = mod.train2, 
                 family = binomial(link = "logit"))
 
-fill.glm_pred <- predict(fill.glm, newdata = mod.test)
+fill.glm_pred <- predict(fill.glm, newdata = mod.test2)
 
 fill.glm_pred_levels <- factor(if_else(fill.glm_pred > 0.5, "1", "0"), levels = c("0", "1"))
 
-table(mod.test$bin_COVIDseverity, fill.glm_pred_levels)
+table(mod.test2$bin_COVIDseverity, fill.glm_pred_levels)
+
+
+roc(mod.test$bin_COVIDseverity, fill.glm_pred_levels)
+
+rocit(score = as.numeric(fill.glm_pred_levels, class = mod.test$bin_COVIDseverity)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
