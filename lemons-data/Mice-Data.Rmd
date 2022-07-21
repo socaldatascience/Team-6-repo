@@ -1,0 +1,160 @@
+---
+title: "Week 5 - CF Test-Data"
+author: "Terrell D Lemons"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(viridis)
+
+tibble("cfCOVIDgroup6.RDATA")
+
+summary(d)
+```
+
+
+```{r}
+
+# Calling the packages
+library(dplyr)
+library(tidyverse)
+library(knitr)
+library(gt)
+library(ggpubr)
+library(leaps)
+library(glmnet)
+library(MASS)
+library(Hmisc)
+library(reshape2)
+library(foreign)
+library(ordinal)
+library(geepack)
+library(mice)
+
+# LOAD UP DATA
+load("~/Desktop/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2/cfCOVIDgroup6.RDATA")
+
+head(d)
+
+# Check the data for missing values..
+sapply(d, function(x) sum(is.na(x)))
+
+# Confirms the presence of missing in the data-set.
+sapply(d, function(x) sum(is.na(x)))
+
+# Transform the variables in factors or numeric
+choc_data <- d %>% 
+  mutate(
+         servicedate = as.Date(d[, "servicedate"]),
+         dischargedate = as.Date(d[, "dischargedate"]),
+         encounterid = as.factor(encounterid)) %>% 
+  arrange_at("dischargedate") %>% 
+  distinct(encounterid, .keep_all = TRUE)
+
+# LIST THE VARIABLES IN ORDER, NOT IN TABLE
+str(choc_data)
+
+choc_data <- choc_data %>% 
+  dplyr::select(age_at_encounter, 
+                encounterid, 
+                contains("comorb"), 
+                INOTROPES,
+                REMDESIVIR, 
+                CCP, 
+                DEXAMETHASONE,
+                ENOXAPARIN, 
+                HEPARIN, 
+                IVIG,
+                METHYLPREDNISOLONE, 
+                RITUXIMAB, 
+                TOCILIZUMAB, 
+                ASPIRIN,
+                LOPINAVIR_OR_RITONAVIR, 
+                admit_tempC, 
+                heartrate, 
+                respiratoryrate,
+                spo2, 
+                bmi_percentile, 
+                bmi_ratio, 
+                systolicBP, 
+                diastolicBP,
+                bilirubin_total_mg_per_dl, 
+                crp_mg_dl, 
+                leukocytes_1000_per_uL,
+                lymphocytes_1000_per_uL, 
+                hemoglobin_g_per_dL, 
+                platelets_1000_per_uL,
+                ALP_U_per_L, 
+                ALT_U_per_L, 
+                AST_U_per_L, 
+                LDH_U_per_L, 
+                ferritin_ng_per_mL, 
+                servicedate)
+
+# CALLS THE DATA SET
+choc_data_2 <- choc_data %>% 
+  dplyr::select(encounterid, spo2, respiratoryrate, heartrate, admit_tempC)
+
+# Duplicate original data-set to evaluate the accuracy of imputation later.
+original <- choc_data_2
+
+# HELPER FUNCTIONS
+init = mice(choc_data_2, maxit=0) 
+meth = init$method
+predM = init$predictorMatrix
+
+# Remove the variable as a predictor but still will be imputed
+predM[, c("encounterid")]=0
+
+# Specify the methods for imputing the missing values.
+meth[c("admit_tempC")]="norm" 
+meth[c("heartrate")]="norm" 
+meth[c("respiratoryrate")]="norm"
+meth[c("spo2")]="norm" 
+
+# Run the multiple (m=5) imputation
+mutate = mice(choc_data_2, method = meth, predictorMatrix = predM, m = 5)
+
+# Create a data-set after mutation.
+mutate <- complete(mutate)
+
+# Check for missing in the imputed data-set.
+sapply(mutate, function(x) sum(is.na(x)))
+
+# ACTUAL VALUES OF MISSING DATA
+# respiratoryrate
+actual <- original$respiratoryrate[is.na(choc_data_2$respiratoryrate)]
+predicted <- mutate$respiratoryrate[is.na(choc_data_2$respiratoryrate)]
+
+# heartrate
+actual <- original$heartrate[is.na(choc_data_2$heartrate)] 
+predicted <- mutate$heartrate[is.na(choc_data_2$heartrate)] 
+View(table(actual))
+View(table(predicted))
+
+
+# plot(choc_data_2, mean(actual, predicted))
+# histogram(mean(predicted))
+
+# dat <- choc_data_2 %>%
+#  mutate(
+#      spo2 = as.factor(spo2),
+#      respiratoryrate = as.factor(respiratoryrate),
+#      heartrate = as.numeric(heartrate)
+#  )
+
+# str(dat)
+
+
+```
+
+
