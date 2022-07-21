@@ -45,6 +45,12 @@ demo_3 <- tribble(
 ggplot(demo_3, aes(x = COMORBIDITY, y = PATIENTS, fill = COMORBIDITY)) +
   geom_bar(stat = "identity") +
   
+  ## TITLE OF PAGES, X, and Y
+  labs(
+      title="GI COMORBITIES") +
+      # x = "Zip Code", 
+      # y = "% of Patients") +
+  
   scale_fill_discrete(name = 'GI COMORBITIES') +
   
   # THEME INCLUDES TICKS, TEXT, AND TITLE  ON EITHER AXIS
@@ -79,6 +85,12 @@ demo_1 <- tribble(
   ggplot(demo_1, aes(COMORBIDITY, PATIENTS, fill=rownames(demo_1)))+
     geom_bar(stat = "identity") + 
     guides(fill = 'none') +
+    
+     ## TITLE OF PAGES, X, and Y
+    labs(
+        title="RESPIRATORY COMORBITIES") +
+        # x = "Zip Code", 
+        # y = "% of Patients") +
     geom_col(colour = "black") + 
     stat_summary(
         fun.data = mean_cl_normal, 
