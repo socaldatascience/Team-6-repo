@@ -1,0 +1,177 @@
+---
+title: "Week 3 - CF Data"
+author: "Terrell D Lemons"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+```{r "Loading packages", echo = FALSE}
+
+library(viridis)
+library(ggplot2)
+library(Hmisc)
+library(tidyverse)
+library(gridExtra)
+library(scales)
+
+tibble("cfCOVIDgroup6.RDATA")
+
+summary(d)
+```
+
+```{r "DEMO 1", echo = FALSE}
+
+tibble("cfCOVIDgroup6.RDATA")
+
+demo_3 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Heart Disease",       6/9337,
+  "Heart Failure",       25/9337,
+
+  "Type I Diabete",      216/9337,
+  "Type II Diabete",     310/9337,
+
+  "Bi-Pap Cpap Non-Invasive",            66/9337,
+  "Invasive Mech Ventilatio",            260/9337,
+
+  "Malnutrition",                        440/9337,
+  "Other Nutritional Deficiencies",      235/9337,
+)
+
+ggplot(demo_3, aes(x = COMORBIDITY, y = PATIENTS, fill = COMORBIDITY)) +
+  geom_bar(stat = "identity") +
+  
+  scale_fill_discrete(name = 'GI COMORBITIES') +
+  
+  # THEME INCLUDES TICKS, TEXT, AND TITLE  ON EITHER AXIS
+  theme(
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        
+        # PUTTING PADDING ON Y AXIS
+        axis.title.y = element_text(vjust = +3)) +
+
+  scale_y_continuous(labels = scales::percent)
+```
+
+
+```{r}
+
+tibble("cfCOVIDgroup6.RDATA")
+
+demo_1 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Asthma",      2162/9337,
+  "Bronchiectasis",  308/9337,
+  "COPD",      678/9337,
+  "Lung Transplant",       23/9337,
+  "Nasal Polyps",      76/9337,
+  "Pneumothorax",    27/9337,
+  "Resp Failure",       369/9337,
+)
+
+#tdl_1 <- demo_1 %>%
+  ggplot(demo_1, aes(COMORBIDITY, PATIENTS, fill=rownames(demo_1)))+
+    geom_bar(stat = "identity") + 
+    guides(fill = 'none') +
+    geom_col(colour = "black") + 
+    stat_summary(
+        fun.data = mean_cl_normal, 
+        geom = "errorbar", 
+        width = 0.25) +
+    theme(
+        #axis.title.x=element_blank()) +
+        # axis.text.x=element_blank()) +
+        # axis.ticks.x=element_blank()) 
+        axis.title.x = element_text(vjust = -1.75),
+        axis.title.y = element_text(vjust = +3)) +
+  
+  # SCALES NUMBERS TO PERCENTAGES
+  scale_y_continuous(labels = scales::percent)
+```
+
+
+```{r}
+tibble("cfCOVIDgroup6.RDATA")
+
+demo_A <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Heart Disease",       6/9337,
+  "Heart Failure",       25/9337,
+
+  "Type I Diabete",      216/9337,
+  "Type II Diabete",     310/9337,
+
+  "Bi-Pap Cpap Non-Invasive",            66/9337,
+  "Invasive Mech Ventilatio",            260/9337,
+
+  "Malnutrition",                        440/9337,
+  "Other Nutritional Deficiencies",      235/9337,
+)
+
+tdl_1 <- demo_A %>%
+  ggplot(aes(x = COMORBIDITY, y = PATIENTS, fill = COMORBIDITY)) +
+    geom_bar(stat = "identity") +
+  
+   labs(
+        title="GI COMORBITIES") +
+        # x = "Zip Code", 
+        # y = "% of Patients") +
+    
+    scale_fill_discrete(name = '') +
+    
+    # THEME INCLUDES TICKS, TEXT, AND TITLE  ON EITHER AXIS
+    theme(
+          axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          
+          # PUTTING PADDING ON Y AXIS
+          axis.title.y = element_text(vjust = +3)) +
+  
+    scale_y_continuous(labels = scales::percent)
+
+demo_B <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Asthma",             2162/9337,
+  "Bronchiectasis",     308/9337,
+  "COPD",               678/9337,
+  "Lung Transplant",    23/9337,
+  "Nasal Polyps",       76/9337,
+  "Pneumothorax",       27/9337,
+  "Resp Failure",       369/9337,
+)
+
+tdl_2 <- demo_B %>%
+  ggplot(aes(COMORBIDITY, PATIENTS, fill=rownames(demo_1)))+
+    geom_bar(stat = "identity") + 
+    guides(fill = 'none') +
+    labs(
+        title="RESPIRATORY COMORBITIES") +
+        # x = "Zip Code", 
+        # y = "% of Patients") +
+    # geom_col(colour = "white") + 
+    stat_summary(
+        fun.data = mean_cl_normal, 
+        geom = "errorbar", 
+        width = 0.25) +
+    theme(
+        axis.title.x=element_blank(),
+        # axis.text.x=element_blank())
+        # axis.ticks.x=element_blank()) 
+        axis.text.x = element_text(vjust = -1),
+        axis.title.y = element_text(vjust = +3)) +
+  
+  # SCALES NUMBERS TO PERCENTAGES
+  scale_y_continuous(labels = scales::percent)
+
+tdl_1
+tdl_2
+
+grid.arrange(tdl_1, tdl_2, nrow = 2)
+```
+
