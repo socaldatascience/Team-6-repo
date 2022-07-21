@@ -31,6 +31,7 @@ choc <- choc %>%
                 lymphocytes_1000_per_uL, hemoglobin_g_per_dL, platelets_1000_per_uL,
                 ALP_U_per_L, ALT_U_per_L, AST_U_per_L, LDH_U_per_L, ferritin_ng_per_mL, 
                 servicedate)
+
 # respiratoryrate spo2 lymp ALP ALT LDH crp leuk bmi_ratio admit_tempC heartrate
 
 choc.mice <- choc %>% 
@@ -89,9 +90,17 @@ fill.ord <- polr(formula = COVIDseverity ~ comorb_resp_failure_J96 + comorb_bron
        tempC + heart_rate+ resp_rate + SPO2 + BMI_ratio + CRP + leukocytes + 
        lymphocytes + ALP + ALT + LDH, data = mod.train, Hess = T)
 
-fill.ord_pred <- predict(fill.ord, newdata = mod.test)
+fill.ord_pred <- predict(fill.ord, newdata = mod.test, type = "probs")
+
+fill.ord_pred_levels <- factor(if_else(fill.ord_pred > 0.5, "2", "1", "0"), levels = c("0", "1", "2"))
 
 table(mod.test$COVIDseverity, fill.ord_pred)
+
+multiROC <- multiclass.roc(mod.test$COVIDseverity, fill.ord_pred)
+
+autoplot(multiROC)
+
+rocit(class = fill.ord_pred_levels, score = mod.test$COVIDseverity)
 
 choc.full <- choc.full %>% 
   mutate(
@@ -130,20 +139,21 @@ fill.glm <- glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_malnutrit
                   comorb_resp_failure_J96*comorb_malnutrition, data = mod.train2, 
                 family = binomial(link = "logit"))
 
-fill.glm_pred <- predict(fill.glm, newdata = mod.test2)
+fill.glm_pred <- predict(fill.glm, newdata = mod.test2, type = "response")
 
 fill.glm_pred_levels <- factor(if_else(fill.glm_pred > 0.5, "1", "0"), levels = c("0", "1"))
+
 
 table(mod.test2$bin_COVIDseverity, fill.glm_pred_levels)
 
 
-roc(mod.test$bin_COVIDseverity, fill.glm_pred_levels)
+roc_score <- roc(mod.test2$bin_COVIDseverity, fill.glm_pred, levels = c("0", "1", "2"))
 
-rocit(score = as.numeric(fill.glm_pred_levels, class = mod.test$bin_COVIDseverity)
+ROCit.obj <- rocit(score = fill.glm_pred_levels, class = mod.test2$bin_COVIDseverity)
 
+plot(ROCit.obj)
 
-
-
+plot(roc_score)
 
 
 
