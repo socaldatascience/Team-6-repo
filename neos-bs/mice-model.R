@@ -161,7 +161,7 @@ plot(roc_score)
 
 glimpse(choc.full)
 
-choc.full %>% 
+choc.fitted <- choc.full %>% 
   mutate(
     resp_rate_lev = as.factor(case_when((age_at_encounter <= 0 & 
                                           resp_rate < 30)|
@@ -272,11 +272,12 @@ choc.full %>%
 glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_malnutrition +
       comorb_other_GI_notLiver_K_excludesK70K77 +
       comorb_chronic_kidney_disease_N18 + comorb_resp_failure_J96 +
-      resp_rate + age_group + comorb_hypertensive_heart_disease_I11 + 
+      resp.rate_cat + age_group + comorb_hypertensive_heart_disease_I11 + 
       comorb_resp_failure_J96*comorb_malnutrition, data = choc.full, 
     family = binomial(link = "logit"))
 
-
+mod.train3 <- choc.fitted[f,]
+mod.test3 <- choc.fitted[-f,]
 
 
 
