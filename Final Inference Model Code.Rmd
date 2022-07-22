@@ -1,0 +1,92 @@
+---
+title: "Final Inference Model Code"
+author: "Team 6"
+date: '2022-07-22'
+output: html_document
+---
+
+```{r}
+setwd("C:/Users/lizvi/Cal State Fullerton/Jaynes, Jessica - CSUF CHOC Summer 2022 Research/Group2")
+
+load("cfCOVIDgroup6.RDATA")
+
+library(tidyverse)
+library(glmnet)
+```
+
+
+Creating necessary data frames containing only first encounters 
+```{r}
+total_comorb_df <- dplyr::select(d, contains("comorb")) %>% 
+  mutate_if(is.factor, as.numeric) %>% 
+  - 1
+  
+total_comorb_df <- total_comorb_df %>% 
+  mutate(total_comorb_by_patient = c(rowSums(total_comorb_df)), 
+         encounterid = d[,"encounterid"]) %>% 
+  dplyr::select("encounterid", "total_comorb_by_patient")
+
+first_enc <- d %>% 
+  dplyr::select(encounterid, personid, servicedate, contains("comorb"),
+         COVIDseverity, age_at_encounter) %>% 
+  mutate(servicedate = as.Date(d[,"servicedate"]), 
+         COVIDseverity = as.ordered(case_when(COVIDseverity > 0 ~ 1,
+                                   COVIDseverity == 0 ~ 0)),
+         personid = as.factor(personid),
+         age_group = as.factor(case_when(age_at_encounter <= 11 ~ "0 - 11",
+                               age_at_encounter > 11 & 
+                                 age_at_encounter <= 17 ~ "12 - 17",
+                               age_at_encounter > 17 &
+                                 age_at_encounter < 21 ~ "18 - 20",
+                               age_at_encounter > 20 ~ "21 - 25")),
+         payer = as.factor(d[,"payer"])) %>%
+  arrange_at("servicedate") %>%
+  distinct(personid, .keep_all = TRUE) %>% 
+  left_join(total_comorb_df, by = "encounterid") %>% 
+  mutate(total_comorb_by_patient = as.factor(
+    case_when(total_comorb_by_patient == 0 ~ "0",
+              total_comorb_by_patient == 1 ~ "1",
+              total_comorb_by_patient == 2 ~ "2",
+              total_comorb_by_patient > 2 ~ "3+")))
+```
+
+
+```{r}
+set.seed(2)
+x <-  model.matrix(COVIDseverity ~ 
+                     comorb_bronchiectasis_J47 +
+                     comorb_chronic_kidney_disease_N18 +
+                     comorb_hypertensive_heart_disease_I11 +
+                     comorb_malnutrition + comorb_nicotine_dependence_F17 +
+                     comorb_resp_failure_J96 + total_comorb_by_patient + 
+                     age_group + 
+                     payer, first_enc)[, -1]
+y <-  first_enc$COVIDseverity
+
+grid <- 10^seq(10, -2, length = 100)
+
+train <-  sample(nrow(x), size = floor(.8 * nrow(x)))
+test <-  (-train)
+y_test <-  y[test]
+
+lasso_mod <-  glmnet(x[train, ], y[train], alpha = 1,
+                     lambda = grid, family = "binomial")
+
+cv_out <- cv.glmnet(x[train, ], y[train], alpha = 1, family = "binomial")
+
+best_lam <-  cv_out$lambda.min
+
+lasso_pred <-  predict(lasso_mod, s = best_lam, newx = x[test, ])
+
+out <-  glmnet(x, y, alpha = 1, lambda = grid, family = "binomial")
+
+lasso_coef = predict(out, type = "coefficients",
+                         s = best_lam)[1:8, ]
+
+lasso_coef[lasso_coef != 0]
+
+plot(out)
+```
+
+
+
