@@ -1,0 +1,324 @@
+---
+  title: "Week 5 - CF Data"
+author: "Terrell D Lemons"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+html_document: default
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+This Graph is a representation of COMORBITIES of a patient with Cystic Fibrosis and the percentage of those patients were affected by those COMORBITIES. 
+
+
+```{r "CF Dataset 1", echo=FALSE}
+
+#library(Hmisc)
+library(tidyverse)
+library(viridis)
+
+tibble("cfCOVIDgroup6.RDATA")
+
+names(d)
+
+demo_3 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Type I Diabete",       216/9337,
+  "Type II Diabete",       310/9337,
+  
+  "Bi-Pap Cpap Non-Invasive",       66/9337,
+  "Invasive Mech Ventilatio",       260/9337,
+  
+  "Malnutrition",       440/9337,
+  "Other Nutritional Deficiencies",      235/9337,
+  
+  "Chronic Kidney Disease",       42/9337,
+  "Liver Disease",       265/9337,
+  "Obesity Overweight",      694/9337,
+  "Other GI Not Liver",      3251/9337,
+)
+
+tdl_3 <- demo_3 %>%
+  ggplot(aes(x = COMORBIDITY, y = PATIENTS, fill=COMORBIDITY, position = "dodge")) +
+  labs(title="COMORBIDITY (%) BY PATIENTS") +
+  # guides(fill=guide_legend("Non-Respiratory")) +
+  stat_summary(fun = mean, geom = "bar") + 
+  
+  geom_bar(stat="identity") +
+  #scale_fill_manual(values=c("#D90EF0",
+  #"#C30DD8",
+  #"#AD0CC0",
+  #"#980AA8",
+  #"#820990",
+  #"#6C0778",
+  #"#570660",
+  #"#410448",
+  #"#2B0330",
+  #"#160118")) +
+  
+stat_summary(fun.data=mean_cl_normal, geom="errorbar", width = 0.25) + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_text(vjust = +3)) +
+  
+  scale_y_continuous(labels = scales::percent)
+
+tdl_3
+```
+
+
+## The Variables: Comorbidities used to gauge the effects of two or more underlining factors contributed to COVID-19
+
+
+```{r "CF Dataset 2", echo=FALSE}
+library("Hmisc")
+library("tidyverse")
+library("ggplot2")
+
+tibble("cfCOVIDgroup6.RDATA")
+
+demo_2 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Chronic Kidney Disease",       42/9337,
+  "Liver Disease",       265/9337,
+  "Obesity Overweight",      694/9337,
+  "Other GI Not Liver",      3251/9337,
+)
+
+ggplot(demo_2, aes(x = COMORBIDITY, y = PATIENTS, fill = PATIENTS)) +
+  labs(title="PRECENTAGES NOT AFFECTED BY COMORBIDITIES") +
+  geom_bar(stat = "identity") +
+  geom_col(position = position_dodge(0.1), colour = "black", size = 0.5) +
+  coord_cartesian(ylim = c(0, NA)) +
+  theme_bw() +
+  theme(axis.title.x = element_text(vjust = -1.75),
+        axis.title.y = element_text(vjust = +3)) +
+  
+  scale_y_continuous(labels = scales::percent)
+```
+
+## The Variables: Comorbidities used to gauge the effects of two or more underlining factors contributed to COVID-19
+
+```{r "CF Dataset 3", echo=FALSE}
+library("Hmisc")
+library("tidyverse")
+
+tibble("cfCOVIDgroup6.RDATA")
+
+demo_1 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Asthma",      2162/9337,
+  "Bronchiectasis",  308/9337,
+  "COPD",      678/9337,
+  "Lung Transplant",       23/9337,
+  "Nasal Polyps",      76/9337,
+  "Pneumothorax",    27/9337,
+  "Resp Failure",       369/9337,
+)
+
+ggplot(demo_1, aes(COMORBIDITY, PATIENTS, fill=rownames(demo_1))) +
+  labs(title="PRECENTAGES AFFECTED BY COMORBIDITIES") +
+  geom_bar(stat = "identity") + guides(fill="none") +
+  # geom_col(colour = "black") + 
+  # geom_point(colour = "black") +
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = 0.25) +  # nolint
+  theme(axis.title.x = element_text(vjust = -1.75),
+        axis.title.y = element_text(vjust = +3)) +
+  
+  scale_y_continuous(labels = scales::percent)
+```
+
+
+```{r}
+library("Hmisc")
+library("tidyverse")
+library("gridExtra")
+library("ggpubr")
+library("ggridges")
+
+tibble("cfCOVIDgroup6.RDATA")
+
+## DEMO 2
+demo_2 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Chronic Kidney Disease",       42/9337,
+  "Liver Disease",       265/9337,
+  "Obesity Overweight",      694/9337,
+  "Other GI Not Liver",      3251/9337,
+)
+
+ggplot(demo_2, aes(x = COMORBIDITY, y = PATIENTS, fill = PATIENTS)) +
+  labs(title="PRECENTAGES NOT AFFECTED BY COMORBIDITIES") +
+  geom_bar(stat = "identity") +
+  geom_col(position = position_dodge(0.1), colour = "black", size = 0.5) +
+  coord_cartesian(ylim = c(0, NA)) +
+  theme_bw() +
+  theme(axis.title.x = element_text(vjust = -1.75),
+        axis.title.y = element_text(vjust = +3)) +
+  
+  scale_y_continuous(labels = scales::percent)
+
+## DEMO 3
+demo_3 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Type I Diabete",       216/9337,
+  "Type II Diabete",       310/9337,
+  
+  "Bi-Pap Cpap Non-Invasive",       66/9337,
+  "Invasive Mech Ventilatio",       260/9337,
+  
+  "Malnutrition",       440/9337,
+  "Other Nutritional Deficiencies",      235/9337,
+  
+  "Chronic Kidney Disease",       42/9337,
+  "Liver Disease",       265/9337,
+  "Obesity Overweight",      694/9337,
+  "Other GI Not Liver",      3251/9337,
+)
+
+tdl_3 <- demo_3 %>%
+  ggplot(aes(x = COMORBIDITY, y = PATIENTS, fill=COMORBIDITY, position = "dodge")) +
+  labs(title="COMORBIDITY (%) BY PATIENTS") +
+  # guides(fill=guide_legend("Non-Respiratory")) +
+  stat_summary(fun = mean, geom = "bar") + 
+  
+  geom_bar(stat="identity") +
+  #scale_fill_manual(values=c("#D90EF0",
+  #"#C30DD8",
+  #"#AD0CC0",
+  #"#980AA8",
+  #"#820990",
+  #"#6C0778",
+  #"#570660",
+  #"#410448",
+  #"#2B0330",
+  #"#160118")) +
+  
+stat_summary(fun.data=mean_cl_normal, geom="errorbar", width = 0.25) + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_text(vjust = +3)) +
+  
+  scale_y_continuous(labels = scales::percent)
+
+## DEMO 2
+demo_4 <- tribble(
+  ~COMORBIDITY,         ~PATIENTS,
+  "Chronic Kidney Disease",       42/9337,
+  "Liver Disease",       265/9337,
+  "Obesity Overweight",      694/9337,
+  "Other GI Not Liver",      3251/9337,
+)
+tdl_4 <- demo_4 %>%
+  ggplot(aes(x = COMORBIDITY, y = PATIENTS, fill = PATIENTS)) +
+  labs(title="PRECENTAGES NOT AFFECTED BY COMORBIDITIES") +
+  geom_bar(stat = "identity") +
+  geom_col(position = position_dodge(0.1), colour = "black", size = 0.5) +
+  coord_cartesian(ylim = c(0, NA)) +
+  theme_bw() +
+  theme(axis.title.x = element_text(vjust = -1.75),
+        axis.title.y = element_text(vjust = +3)) +
+  
+  scale_y_continuous(labels = scales::percent)
+
+# DISPLAY GRID
+#grid.arrange(tdl_2, arrangeGrob(tdl_3, tdl_4, nrow=1), ncol = 1)
+
+grid.arrange(tdl_2, tdl_4, nrow = 2, ncol = 1)
+```
+
+
+
+```{r}
+#remove.packages("ggplot2") # Unisntall ggplot
+#install.packages("ggplot2") # Install it again
+library(ggplot2)
+library(Hmisc)
+library(tidyverse)
+library(gridExtra)
+
+tibble("cfCOVIDgroup6.RDATA")
+
+x <- 1:10                                     # Create example 
+
+y1 <- c(3, 1, 5, 2, 3, 8, 4, 7, 6, 9)         # Create data
+
+y2 <- c(5, 1, 4, 6, 2, 3, 7, 8, 2, 8)         # Create more data 
+y3 <- c(3, 3, 3, 3, 4, 4, 5, 5, 7, 7)
+
+plot(x, y1, type = "b",                       # Change title & axis   
+     # labels
+     main = "SEVERITY WITH COVID",
+     xlab = "1 to 10 Severity",
+     ylab = "Frequency",
+     col = "blue",
+     pch = 16,
+     # lwd = 5,                               # Thickness of line
+)
+
+# Add second & third lines
+lines(x, y2, type = "b", col = "red", pch = 15)         
+lines(x, y3, type = "b", col = "green", pch = 8)  
+
+legend(
+  "topleft",                             # Add legend to plot
+  legend = c("Men", "Women", "Children"),
+  col = c("blue", "red", "green"),
+  pch = c(16, 15, 8),
+  lty = 1
+)
+
+```
+
+
+```{r}
+library(ggplot2)
+library(Hmisc)
+library(tidyverse)
+library(gridExtra)
+library(scales)
+
+tibble("cfCOVIDgroup6.RDATA")
+
+names(d)
+
+#select(d, gender, age_at_encounter, zip_code, tenant)
+
+#d <- data.frame(zip_code = c("01234", "39999", "59999", "79999", "99999"),             age_at_encounter = c(3, 7, 11, 15, 19))
+
+ggplot(d, aes(zip_code, age_at_encounter) ) +
+  labs(title="COVID ENCOUNTERS BY ZIP CODE AND AGE",
+       x = "Zip Code", 
+       y = "Age of Encounter") +
+  
+  #geom_point() +
+  # xlim(00, 09) + 
+  # ylim(18,20) +
+  
+  geom_smooth(method = "lm", se = FALSE, aes(color = "green")) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = FALSE, aes(color = "red")) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 3), se = FALSE, aes(color = "blue")) +
+  # scale_color_manual(values = c("green", "red", "blue") ) +
+  
+  scale_color_identity(
+    name = "Patients:",
+    breaks = c("green", "red", "blue"),
+    labels = c("Children", "Female", "Male"),
+    guide = "legend") +
+  theme(legend.position = "bottom",
+        axis.title.y = element_text(vjust = +3),
+        axis.title.x = element_text(vjust = -0.75)) + 
+  scale_x_continuous(labels = label_number(accuracy = 1))
+
+```
+
+
