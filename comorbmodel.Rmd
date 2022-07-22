@@ -48,7 +48,13 @@ total_comorb_df <- total_comorb_df %>%
 
 first_enc <- all_comorb %>%
   arrange_at("servicedate") %>%
-  distinct(personid, .keep_all = TRUE)
+  distinct(personid, .keep_all = TRUE) %>% 
+  left_join(total_comorb_df, by = "encounterid") %>% 
+  mutate(total_comorb_by_patient = as.factor(
+    case_when(total_comorb_by_patient == 0 ~ "0",
+              total_comorb_by_patient == 1 ~ "1",
+              total_comorb_by_patient == 2 ~ "2",
+              total_comorb_by_patient > 2 ~ "3+")))
 
 table(first_enc$age_at_encounter)/length(first_enc$age_at_encounter)
 
@@ -288,7 +294,8 @@ first_enc_labs <- d %>%
                            (age_at_encounter  >= 18 & (LDH_U_per_L <  140 | 
                                                          LDH_U_per_L >  280)) ~
                            1, 
-                         is.na(LDH_U_per_L) ~ 0)))
+                         is.na(LDH_U_per_L) ~ 0))) %>% 
+  left_join(total_comorb_df, by = "encounterid")
 ```
 
 
@@ -401,9 +408,7 @@ fel_bin <- d %>%
                            (age_at_encounter  >= 18 & (LDH_U_per_L <  140 | 
                                                          LDH_U_per_L >  280)) ~
                            1, 
-                         is.na(LDH_U_per_L) ~ 0))) %>% 
-  left_join(total_comorb_df, by = "encounterid") %>% 
-  dplyr::select(!contains(".y"))
+                         is.na(LDH_U_per_L) ~ 0)))
 ```
 
 
@@ -520,5 +525,17 @@ fel_bin <- d %>%
 
 ```
 
+
+```{r}
+glm(COVIDseverity ~ total_comorb_by_patient + age_group, data = first_enc,
+    family = "binomial") %>% 
+  summary()
+
+table(first_enc$total_comorb_by_patient)/length(first_enc$total_comorb_by_patient)
+```
+Having one comorbidity will increase the log odds of needing oxygen therapy by
+0.033. Having two comorbidities will increase the log odds of needing oxygen
+therapy by 0.353. Having three or more comorbidities increases the log odds
+of needing oxygen therapy by 1.415. 
 
 
