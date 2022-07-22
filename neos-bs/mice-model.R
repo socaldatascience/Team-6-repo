@@ -163,6 +163,53 @@ glimpse(choc.full)
 
 choc.full %>% 
   mutate(
+    resp_rate_lev = as.factor(case_when((age_at_encounter <= 0 & 
+                                          resp_rate < 30)|
+                                                 ((age_at_encounter == 1 | 
+                                                     age_at_encounter== 2) & 
+                                                    resp_rate < 24)|
+                                                 (age_at_encounter >= 3 & 
+                                                    age_at_encounter <= 5 & 
+                                                    resp_rate < 22)|
+                                                 (age_at_encounter >= 6 &
+                                                    age_at_encounter <= 12 &
+                                                    resp_rate < 18)|
+                                                 (age_at_encounter >= 13 &
+                                                    resp_rate < 12) ~ "Low",
+                                               (age_at_encounter <= 0 & 
+                                                  resp_rate >= 30 &
+                                                  resp_rate <= 60)|
+                                                 ((age_at_encounter == 1 | 
+                                                     age_at_encounter == 2) &
+                                                    resp_rate >= 24 &
+                                                    resp_rate <= 40)|
+                                                 (age_at_encounter >= 3 &
+                                                    age_at_encounter <= 5 &
+                                                    resp_rate >= 22 &
+                                                    resp_rate <= 34)|
+                                                 (age_at_encounter >= 6 &
+                                                    age_at_encounter <= 12 &
+                                                    resp_rate >= 18 &
+                                                    resp_rate <= 30)|
+                                                 (age_at_encounter >= 13 &
+                                                    resp_rate >= 12 &
+                                                    resp_rate <= 16) ~ "Normal",
+                                               (age_at_encounter <= 0 &
+                                                  resp_rate > 60)|
+                                                 ((age_at_encounter == 1 |
+                                                     age_at_encounter == 2) &
+                                                    resp_rate > 40)|
+                                                 (age_at_encounter >= 3 &
+                                                    age_at_encounter <= 5 &
+                                                    resp_rate > 34)|
+                                                 (age_at_encounter >= 6 &
+                                                    age_at_encounter <= 12 &
+                                                    resp_rate > 30)|
+                                                 (age_at_encounter >= 13 &
+                                                    resp_rate > 16) ~ "High")),
+           resp.rate_cat = case_when(resp_rate_lev =="Normal"~ 0,
+                                     resp_rate_lev == "Low"| resp_rate_lev == "High"~ 1),
+    
     tempC_cat = as.factor(case_when(
       tempC >= 35 &
       tempC <= 37.3 ~ 0,
@@ -218,15 +265,16 @@ choc.full %>%
       ALT <= 40 ~ 0,
         
       ALT < 10 |
-      ALT > 40 ~ 1)),
-    
-    
-    
-    
-  )
+      ALT > 40 ~ 1))
+    )
 
 
-
+glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_malnutrition +
+      comorb_other_GI_notLiver_K_excludesK70K77 +
+      comorb_chronic_kidney_disease_N18 + comorb_resp_failure_J96 +
+      resp_rate + age_group + comorb_hypertensive_heart_disease_I11 + 
+      comorb_resp_failure_J96*comorb_malnutrition, data = choc.full, 
+    family = binomial(link = "logit"))
 
 
 
