@@ -98,7 +98,7 @@ table(mod.test$COVIDseverity, fill.ord_pred)
 
 multiROC <- multiclass.roc(mod.test$COVIDseverity, fill.ord_pred)
 
-plot(multiROC)
+autoplot(multiROC)
 
 rocit(class = fill.ord_pred_levels, score = mod.test$COVIDseverity)
 
@@ -317,10 +317,10 @@ imput.glm_pred_levels <- factor(if_else(imput.glm_pred > 0.5, "1", "0"), levels 
 
 table(mod.test3$bin_COVIDseverity, imput.glm_pred_levels)
 
-l <- roc(mod.test3$bin_COVIDseverity, imput.glm_pred)
+roc(mod.test3$bin_COVIDseverity, imput.glm_pred)
 
 ROCit.obj2 <- rocit(score = imput.glm_pred, class = mod.test3$bin_COVIDseverity)
 
 plot(ROCit.obj2)
 
-plot(l)
+plot(roc_score)
