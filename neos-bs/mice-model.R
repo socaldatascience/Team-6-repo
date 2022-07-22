@@ -157,6 +157,78 @@ plot(roc_score)
 
 
 
+#===================== Categorizing Imputed Data ===============================
+
+glimpse(choc.full)
+
+choc.full %>% 
+  mutate(
+    tempC_cat = as.factor(case_when(
+      tempC >= 35 &
+      tempC <= 37.3 ~ 0,
+      
+      tempC < 35|
+      tempC > 37.3 ~ 1)),
+    
+    heartrate_cat = as.factor(case_when(
+      heart_rate >= 60 &
+      heart_rate <= 115 ~ 0,
+      
+      heart_rate < 60 |
+      heart_rate > 115 ~ 1)),
+    
+    spo2_cat = as.factor(case_when(
+      SPO2 >= 95 ~ 0,
+      SPO2 < 95 ~1)), 
+    
+    bmi_ratio_cat = as.factor(case_when(
+      BMI_ratio >= 18.5 & 
+      BMI_ratio <= 24.5 ~ 0,
+      
+      BMI_ratio < 18.5 |
+      BMI_ratio > 24.5 ~ 1)), 
+    
+    crp_levels = as.factor(case_when(
+      CRP < 0.9 ~ 0,
+      CRP > 0.9 ~ 1)),
+    
+    leukocytes_cat = as.factor(case_when(
+      leukocytes >= 4.5 &
+      leukocytes <= 11 ~ 0,
+              
+      leukocytes < 4.5|
+      leukocytes > 11 ~ 1)),
+    
+    lymphocytes_cat = as.factor(case_when(
+      lymphocytes >= 1 &
+      lymphocytes <= 4.8 ~ 0,
+              
+      lymphocytes < 1 |                                                     
+      lymphocytes > 4.8 ~ 1)),
+    
+    ALP_cat = as.factor(case_when(
+      ALP >= 44 &
+      ALP <= 147 ~ 0,
+      
+      ALP < 44 |
+      ALP > 147 ~ 1)),
+    
+    ALT_cat = as.factor(case_when(
+      ALT >= 10 & 
+      ALT <= 40 ~ 0,
+        
+      ALT < 10 |
+      ALT > 40 ~ 1)),
+    
+    
+    
+    
+  )
+
+
+
+
+
 
 
 
