@@ -273,7 +273,7 @@ glm(bin_COVIDseverity ~ comorb_bronchiectasis_J47 + comorb_malnutrition +
       comorb_other_GI_notLiver_K_excludesK70K77 +
       comorb_chronic_kidney_disease_N18 + comorb_resp_failure_J96 +
       resp.rate_cat + age_group + comorb_hypertensive_heart_disease_I11 + 
-      comorb_resp_failure_J96*comorb_malnutrition, data = choc.full, 
+      comorb_resp_failure_J96*comorb_malnutrition, data = choc.fitted, 
     family = binomial(link = "logit"))
 
 mod.train3 <- choc.fitted[f,]
@@ -317,7 +317,7 @@ imput.glm_pred_levels <- factor(if_else(imput.glm_pred > 0.5, "1", "0"), levels 
 
 table(mod.test3$bin_COVIDseverity, imput.glm_pred_levels)
 
-l <- roc(mod.test3$bin_COVIDseverity, imput.glm_pred)
+roc(mod.test3$bin_COVIDseverity, imput.glm_pred)
 
 ROCit.obj2 <- rocit(score = imput.glm_pred, class = mod.test3$bin_COVIDseverity)
 
